@@ -142,47 +142,7 @@ class NSFWBot(commands.Cog):
         )
         embed.set_image(url=media)
         await inter.followup.send(content=f"{user.mention}", embed=embed)
-    # ==================== LỆNH /SEX (CẤU TRÚC GIỐNG HỆT /R34) ====================
-    @app_commands.command(name="sex", description="🔞 Tìm ảnh/video NSFW theo tag (Ví dụ: female video)")
-    @app_commands.describe(tags="Tag tìm kiếm (Ví dụ: female video, anal, 1girl...)", amount="Số lượng kết quả (1-8)")
-    async def sex(self, interaction: discord.Interaction, tags: str, amount: int = 4):
-        if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
-            return
 
-        await interaction.response.defer()
-        amount = min(max(amount, 1), 8)
-
-        boorus = [
-            {"name": "rule34.xxx", "url": "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1",
-             "params": {"tags": tags, "limit": 100, "user_id": RULE34_USER_ID, "api_key": RULE34_API_KEY}},
-            {"name": "gelbooru", "url": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
-             "params": {"tags": tags, "limit": 100, "user_id": GELBOORU_USER_ID, "api_key": GELBOORU_API_KEY}},
-        ]
-
-        for booru in boorus:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(booru["url"], params=booru["params"], timeout=15) as resp:
-                        if resp.status != 200: 
-                            continue
-                        data = await resp.json()
-                        if isinstance(data, dict):
-                            data = data.get("post") or data.get("posts") or []
-                        if not data: 
-                            continue
-
-                        selected = random.sample(data, min(amount, len(data)))
-                        for post in selected:
-                            file_url = post.get("file_url") or post.get("sample_url") or post.get("image")
-                            if file_url and file_url.startswith("//"):
-                                file_url = "https:" + file_url
-                            if file_url:
-                                await interaction.followup.send(f"**{booru['name']}** | `{tags}`\n{file_url}")
-                        return
-            except Exception:
-                continue
-
-        await interaction.followup.send(f"❌ Không tìm thấy kết quả nào cho `{tags}`")
     # ==================== SLASH ACTION ====================
     @app_commands.command(name="fuck", description="💦 Chịch đối phương")
     async def fuck(self, inter: discord.Interaction, user: discord.User):
@@ -468,6 +428,17 @@ class NSFWBot(commands.Cog):
     async def neko(self, ctx): 
         await self.get_nsfw(ctx, "neko", "🐱 Neko")
 
+    @commands.command()
+    async def paizuri(self, ctx): 
+        await self.get_nsfw(ctx, "paizuri", "🍈 Paizuri")
+
+    @commands.command(name="4k")
+    async def fourk(self, ctx): 
+        await self.get_nsfw(ctx, "4k", "🖼️ 4K NSFW")
+
+    @commands.command()
+    async def gonewild(self, ctx): 
+        await self.get_nsfw(ctx, "gonewild", "🔥 Gone Wild")
     # ==================== PREFIX L.R34 & L.ZI ====================
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
