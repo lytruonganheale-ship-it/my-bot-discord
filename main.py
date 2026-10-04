@@ -398,9 +398,6 @@ class NSFWBot(commands.Cog):
     async def hentaigif(self, ctx): await self.get_nsfw(ctx, "hentai_gif", "🌸 Hentai GIF")
 
     @commands.command()
-    async def lewd(self, ctx): await self.get_nsfw(ctx, "lewd", "😈 Lewd")
-
-    @commands.command()
     async def ass(self, ctx): await self.get_nsfw(ctx, "ass", "🍑 Ass")
 
     @commands.command()
@@ -416,34 +413,7 @@ class NSFWBot(commands.Cog):
     async def pussy(self, ctx): await self.get_nsfw(ctx, "pussy", "🌸 Pussy")
     # ==================== CÁC TAG NSFW MỚI THÊM ====================
     @commands.command()
-    async def yuri(self, ctx): await self.get_nsfw(ctx, "yuri", "👭 Yuri / Les")
-
-    @commands.command()
     async def yaoi(self, ctx): await self.get_nsfw(ctx, "yaoi", "👬 Yaoi / BL")
-
-    @commands.command()
-    async def tummy(self, ctx): await self.get_nsfw(ctx, "tummy", "🤰 Tummy / Eo bụng")
-
-    @commands.command()
-    async def tentacle(self, ctx): await self.get_nsfw(ctx, "tentacles", "🐙 Tentacle")
-
-    @commands.command()
-    async def swimsuit(self, ctx): await self.get_nsfw(ctx, "swimsuit", "🩱 Swimsuit / Đồ bơi")
-
-    @commands.command()
-    async def pee(self, ctx): await self.get_nsfw(ctx, "pee", "💦 Pee / Water sports")
-
-    @commands.command()
-    async def pantsu(self, ctx): await self.get_nsfw(ctx, "pantsu", "🩲 Pantsu / Quần lót")
-
-    @commands.command()
-    async def nakadashi(self, ctx): await self.get_nsfw(ctx, "nakadashi", "🥛 Nakadashi / Creampie")
-
-    @commands.command()
-    async def kitsune(self, ctx): await self.get_nsfw(ctx, "kitsune", "🦊 kitsune / Cáo")
-
-    @commands.command()
-    async def futa(self, ctx): await self.get_nsfw(ctx, "futanari", "🍆 Futanari")
 
     @commands.command()
     async def pgif(self, ctx): await self.get_nsfw(ctx, "pgif", "🎞️ Pussy GIF")
@@ -452,13 +422,6 @@ class NSFWBot(commands.Cog):
     async def feet(self, ctx): await self.get_nsfw(ctx, "feet", "🦶 Feet / Chân")
 
     @commands.command()
-    async def cumsluts(self, ctx): await self.get_nsfw(ctx, "cumsluts", "🤤 Cumsluts")
-
-    @commands.command()
-    async def cosplay(self, ctx): await self.get_nsfw(ctx, "cosplay", "🎭 Cosplay NSFW")
-
-    @commands.command()
-    async def collared(self, ctx): await self.get_nsfw(ctx, "collared", "⛓️ Collared / Vòng cổ")
     async def nsfwrandom(self, ctx):
         types = ["hentai","lewd","ass","boobs","thighs","ahegao","anal","pussy"]
         t = random.choice(types)
@@ -526,7 +489,7 @@ class NSFWBot(commands.Cog):
         embed = discord.Embed(title="🚀 SIÊU BOT NSFW v4.0", color=0xFF1493)
         embed.add_field(name="🔞 Action", value="`/fuck` `/bj` `/anal` `/kiss` `/lick` `/spank` `/finger` `/cum_on` `/cowgirl` `/boobs`", inline=False)
         embed.add_field(name="🔍 Search", value="`/r34 [tag] [số]`\n`/doujin`\n`L.r34 [tag]` hoặc `L.zi [tag]`", inline=False)
-        embed.add_field(name="🌸 Nekobot", value="`!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!ahegao` `!anal` `!pussy` `!lewd` `!nsfwrandom` `!neko`", inline=False)
+        embed.add_field(name="🌸 Nekobot", value="`!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!anal` `!pussy` `!lewd` `!nsfwrandom` `!neko` `!feet` `pgif` `pgif`", inline=False)
         await ctx.send(embed=embed)
 
 # ==== LỆNH /START CHỈ CHO ADMIN ====
@@ -554,7 +517,7 @@ async def start(inter: discord.Interaction):
         "• `/boobs @user` – Show vú người khác 🍈\n"
         "• `/setnsfw [on/off]` – Bật/tắt chế độ NSFW cho kênh\n\n"
         "💡 Dùng lệnh `/setnsfw on` để bật các lệnh NSFW cho kênh!\n"
-        "❗ Nếu bot không phản hồi lệnh, hãy kiểm tra xem kênh đã bật NSFW chưa!")
+        "❗ Nếu bot không phản hồi lệnh, hãy kiểm tra xem kênh đã bật NSFW chưa dùng lệnh !help để xem các lệnh của nekobot🌸")
 
 # ====================== RUN ======================
 async def main():
