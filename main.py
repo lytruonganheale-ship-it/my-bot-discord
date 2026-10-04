@@ -439,6 +439,51 @@ class NSFWBot(commands.Cog):
     @commands.command()
     async def gonewild(self, ctx): 
         await self.get_nsfw(ctx, "gonewild", "🔥 Gone Wild")
+    # ==================== CÁC TAG NSFW MỚI THÊM ====================
+    @commands.command()
+    async def yuri(self, ctx): await self.get_nsfw(ctx, "yuri", "👭 Yuri / Les")
+
+    @commands.command()
+    async def yaoi(self, ctx): await self.get_nsfw(ctx, "yaoi", "👬 Yaoi / BL")
+
+    @commands.command()
+    async def tummy(self, ctx): await self.get_nsfw(ctx, "tummy", "🤰 Tummy / Eo bụng")
+
+    @commands.command()
+    async def tentacle(self, ctx): await self.get_nsfw(ctx, "tentacles", "🐙 Tentacle")
+
+    @commands.command()
+    async def swimsuit(self, ctx): await self.get_nsfw(ctx, "swimsuit", "🩱 Swimsuit / Đồ bơi")
+
+    @commands.command()
+    async def pee(self, ctx): await self.get_nsfw(ctx, "pee", "💦 Pee / Water sports")
+
+    @commands.command()
+    async def pantsu(self, ctx): await self.get_nsfw(ctx, "pantsu", "🩲 Pantsu / Quần lót")
+
+    @commands.command()
+    async def nakadashi(self, ctx): await self.get_nsfw(ctx, "nakadashi", "🥛 Nakadashi / Creampie")
+
+    @commands.command()
+    async def kitsune(self, ctx): await self.get_nsfw(ctx, "kitsune", "🦊 Kitsune / Cáo")
+
+    @commands.command()
+    async def futa(self, ctx): await self.get_nsfw(ctx, "futanari", "🍆 Futanari")
+
+    @commands.command()
+    async def pgif(self, ctx): await self.get_nsfw(ctx, "pgif", "🎞️ Pussy GIF")
+
+    @commands.command()
+    async def feet(self, ctx): await self.get_nsfw(ctx, "feet", "🦶 Feet / Chân")
+
+    @commands.command()
+    async def cumsluts(self, ctx): await self.get_nsfw(ctx, "cumsluts", "🤤 Cumsluts")
+
+    @commands.command()
+    async def cosplay(self, ctx): await self.get_nsfw(ctx, "cosplay", "🎭 Cosplay NSFW")
+
+    @commands.command()
+    async def collared(self, ctx): await self.get_nsfw(ctx, "collared", "⛓️ Collared / Vòng cổ")
     
     # ==================== PREFIX L.R34 & L.ZI ====================
     @commands.Cog.listener()
@@ -524,7 +569,7 @@ async def start(inter: discord.Interaction):
         "• `/spank @user` – Đánh mông người khác 🔥\n"
         "• `/finger @user` – Móc lồn người khác 😳\n"
         "• `/boobs @user` – Show vú người khác 🍈\n"
-        "🌸 Nekobot `/!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!ahegao` `!anal` `!pussy` `!lewd` `!paizuri` `!4k` `!gonewild` `!nsfwrandom` `!neko`\n"
+        "🌸 Nekobot `/!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!ahegao` `!anal` `!pussy` `!lewd` `!paizuri` `!4k` `!gonewild` `!nsfwrandom` `!neko` `!yuri` `!yaoi` `!tummy` `!tentacle` `!swimsuit` `!pee` `!pantsu` `!nakadashi` `!kitsune` `!futa` `!pgif` `!feet` `!cumsluts` `!cosplay` `!collared`\n"
         "• `/setnsfw [on/off]` – Bật/tắt chế độ NSFW cho kênh\n\n"
         "💡 Dùng lệnh `/setnsfw on` để bật các lệnh NSFW cho kênh!\n"
         "❗ Nếu bot không phản hồi lệnh, hãy kiểm tra xem kênh đã bật NSFW chưa!")
