@@ -410,9 +410,6 @@ class NSFWBot(commands.Cog):
     async def thighs(self, ctx): await self.get_nsfw(ctx, "thighs", "🦵 Thighs")
 
     @commands.command()
-    async def ahegao(self, ctx): await self.get_nsfw(ctx, "ahegao", "😵‍💫 Ahegao")
-
-    @commands.command()
     async def anal(self, ctx): await self.get_nsfw(ctx, "anal", "🍑 Anal")
 
     @commands.command()
@@ -443,7 +440,7 @@ class NSFWBot(commands.Cog):
     async def nakadashi(self, ctx): await self.get_nsfw(ctx, "nakadashi", "🥛 Nakadashi / Creampie")
 
     @commands.command()
-    async def kitsune(self, ctx): await self.get_nsfw(ctx, "kitsune", "🦊 Kitsune / Cáo")
+    async def foxgirl(self, ctx): await self.get_nsfw(ctx, "foxgirl", "🦊 foxgirl / Cáo")
 
     @commands.command()
     async def futa(self, ctx): await self.get_nsfw(ctx, "futanari", "🍆 Futanari")
