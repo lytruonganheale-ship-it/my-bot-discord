@@ -392,89 +392,89 @@ class NSFWBot(commands.Cog):
 
     # Commands Nekobot
     @commands.command()
-    async def hentai(self, ctx): await self.get_nsfw(ctx, "nsfwh hentai", "🌸 Hentai")
+    async def hentai(self, ctx): await self.get_nsfw(ctx, "hentai", "🌸 Hentai")
 
     @commands.command()
     async def hentaigif(self, ctx): await self.get_nsfw(ctx, "hentai_gif", "🌸 Hentai GIF")
 
     @commands.command()
-    async def ass(self, ctx): await self.get_nsfw(ctx, "nsfwh ass", "🍑 Ass")
+    async def ass(self, ctx): await self.get_nsfw(ctx, "ass", "🍑 Ass")
 
     @commands.command()
-    async def boobs(self, ctx): await self.get_nsfw(ctx, "nsfwh boobs", "🍒 Boobs")
+    async def boobs(self, ctx): await self.get_nsfw(ctx, "boobs", "🍒 Boobs")
 
     @commands.command()
-    async def thighs(self, ctx): await self.get_nsfw(ctx, "nsfwh thighs", "🦵 Thighs")
+    async def thighs(self, ctx): await self.get_nsfw(ctx, "thighs", "🦵 Thighs")
 
     @commands.command()
-    async def anal(self, ctx): await self.get_nsfw(ctx, "nsfw anal", "🍑 Anal")
+    async def anal(self, ctx): await self.get_nsfw(ctx, "anal", "🍑 Anal")
 
     @commands.command()
-    async def pussy(self, ctx): await self.get_nsfw(ctx, "nsfw pussy", "🌸 Pussy")
+    async def pussy(self, ctx): await self.get_nsfw(ctx, "pussy", "🌸 Pussy")
 
     @commands.command()
     async def nsfwrandom(self, ctx):
-        types = ["hentai","lewd","ass","boobs","thighs","ahegao","anal","pussy"]
+        types = ["hentai",","ass","boobs","thighs","anal","pussy"]
         t = random.choice(types)
         await self.get_nsfw(ctx, t, f"🎲 Random {t.title()}")
 
     @commands.command()
     async def neko(self, ctx): 
-        await self.get_nsfw(ctx, "nsfwh neko", "🐱 Neko")
+        await self.get_nsfw(ctx, "neko", "🐱 Neko")
 # ==================== LỆNH NEKOBOT BỔ SUNG ====================
     @commands.command()
     async def paizuri(self, ctx): 
-        await self.get_nsfw(ctx, "nsfwh paizuri", "🍈 Paizuri")
+        await self.get_nsfw(ctx, "paizuri", "🍈 Paizuri")
 
     @commands.command(name="4k")
     async def fourk(self, ctx): 
-        await self.get_nsfw(ctx, "nsfw 4k", "🖼️ 4K NSFW")
+        await self.get_nsfw(ctx, "4k", "🖼️ 4K NSFW")
 
     @commands.command()
     async def gonewild(self, ctx): 
-        await self.get_nsfw(ctx, "nsfw gonewild", "🔥 Gone Wild")
+        await self.get_nsfw(ctx, "gonewild", "🔥 Gone Wild")
     # ==================== CÁC TAG NSFW MỚI THÊM ====================
     @commands.command()
-    async def yuri(self, ctx): await self.get_nsfw(ctx, "nsfwh yuri", "👭 Yuri / Les")
+    async def yuri(self, ctx): await self.get_nsfw(ctx, "yuri", "👭 Yuri / Les")
 
     @commands.command()
-    async def yaoi(self, ctx): await self.get_nsfw(ctx, "nsfwh yaoi", "👬 Yaoi / BL")
+    async def yaoi(self, ctx): await self.get_nsfw(ctx, "yaoi", "👬 Yaoi / BL")
 
     @commands.command()
-    async def tummy(self, ctx): await self.get_nsfw(ctx, "nsfwh tummy", "🤰 Tummy / Eo bụng")
+    async def tummy(self, ctx): await self.get_nsfw(ctx, "tummy", "🤰 Tummy / Eo bụng")
 
     @commands.command()
-    async def tentacle(self, ctx): await self.get_nsfw(ctx, "nsfwh tentacle", "🐙 Tentacle")
+    async def tentacle(self, ctx): await self.get_nsfw(ctx, "tentacle", "🐙 Tentacle")
 
     @commands.command()
-    async def swimsuit(self, ctx): await self.get_nsfw(ctx, "nsfwh swimsuit", "🩱 Swimsuit / Đồ bơi")
+    async def swimsuit(self, ctx): await self.get_nsfw(ctx, "swimsuit", "🩱 Swimsuit / Đồ bơi")
 
     @commands.command()
-    async def pee(self, ctx): await self.get_nsfw(ctx, "nsfwh pee", "💦 Pee / Water sports")
+    async def pee(self, ctx): await self.get_nsfw(ctx, "pee", "💦 Pee / Water sports")
 
     @commands.command()
-    async def pantsu(self, ctx): await self.get_nsfw(ctx, "nsfwh pantsu", "🩲 Pantsu / Quần lót")
+    async def pantsu(self, ctx): await self.get_nsfw(ctx, "pantsu", "🩲 Pantsu / Quần lót")
 
     @commands.command()
-    async def nakadashi(self, ctx): await self.get_nsfw(ctx, "nafwh nakadashi", "🥛 Nakadashi / Creampie")
+    async def nakadashi(self, ctx): await self.get_nsfw(ctx, "nakadashi", "🥛 Nakadashi / Creampie")
 
     @commands.command()
-    async def kitsune(self, ctx): await self.get_nsfw(ctx, "nsfwh kitsune", "🦊 Kitsune / Cáo")
+    async def kitsune(self, ctx): await self.get_nsfw(ctx, "kitsune", "🦊 Kitsune / Cáo")
 
     @commands.command()
-    async def pgif(self, ctx): await self.get_nsfw(ctx, "nsfw pgif", "🎞️ Pussy GIF")
+    async def pgif(self, ctx): await self.get_nsfw(ctx, "pgif", "🎞️ Pussy GIF")
 
     @commands.command()
-    async def feet(self, ctx): await self.get_nsfw(ctx, "nsfw feet", "🦶 Feet / Chân")
+    async def feet(self, ctx): await self.get_nsfw(ctx, "feet", "🦶 Feet / Chân")
 
     @commands.command()
-    async def cumsluts(self, ctx): await self.get_nsfw(ctx, "nsfw cumsluts", "🤤 Cumsluts")
+    async def cumsluts(self, ctx): await self.get_nsfw(ctx, "cumsluts", "🤤 Cumsluts")
 
     @commands.command()
-    async def cosplay(self, ctx): await self.get_nsfw(ctx, "nsfw cosplay", "🎭 Cosplay NSFW")
+    async def cosplay(self, ctx): await self.get_nsfw(ctx, "cosplay", "🎭 Cosplay NSFW")
 
     @commands.command()
-    async def collared(self, ctx): await self.get_nsfw(ctx, "nsfw collared", "⛓️ Collared / Vòng cổ")
+    async def collared(self, ctx): await self.get_nsfw(ctx, "collared", "⛓️ Collared / Vòng cổ")
     
     # ==================== PREFIX L.R34 & L.ZI ====================
     @commands.Cog.listener()
