@@ -417,7 +417,6 @@ class NSFWBot(commands.Cog):
 
     @commands.command()
     async def pussy(self, ctx): await self.get_nsfw(ctx, "pussy", "🌸 Pussy")
-    @commands.command()
     # ==================== CÁC TAG NSFW MỚI THÊM ====================
     @commands.command()
     async def yuri(self, ctx): await self.get_nsfw(ctx, "yuri", "👭 Yuri / Les")
