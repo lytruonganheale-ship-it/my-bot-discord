@@ -422,6 +422,10 @@ class NSFWBot(commands.Cog):
     async def feet(self, ctx): await self.get_nsfw(ctx, "feet", "🦶 Feet / Chân")
 
     @commands.command()
+    async def paizuri(self, ctx): 
+        await self.get_nsfw(ctx, "paizuri", "🍈 Paizuri / Kẹp ngực")
+    
+    @commands.command()
     async def nsfwrandom(self, ctx):
         types = ["hentai","lewd","ass","boobs","thighs","ahegao","anal","pussy"]
         t = random.choice(types)
