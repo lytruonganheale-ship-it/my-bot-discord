@@ -289,7 +289,7 @@ class NSFWBot(commands.Cog):
         except:
             await inter.followup.send("❌ Lỗi khi lấy doujin.")
     # ==================== HENTAIZ RANDOM VIDEO (Đẹp) ====================
-    @app_commands.command(name="hentaivideo", description="🎥 Random video hentai từ hentaiz.bot")
+    @app_commands.command(name="hentaivideo", description="🎥 Random video hentai từ hentaiz.bot https://hentaivietsub.com/")
     async def hentaivideo(self, interaction: discord.Interaction):
         if not await self.is_nsfw(interaction):
             return
@@ -338,7 +338,7 @@ class NSFWBot(commands.Cog):
             logging.error(f"Hentaiz error: {e}")
 
         # Fallback
-        await interaction.followup.send("https://hentaiz.bot\n🎥 Vào đây chọn video random nè 🔥")
+        await interaction.followup.send("https://hentaiz.bot\n🎥 https://hentaivietsub.com/🎥 Vào đây chọn video random nè 🔥")
     # ==================== NEKOBOT ĐÃ SỬA ====================
     async def get_nsfw(self, ctx, media_type: str, title: str):
         if not await self.is_nsfw(ctx) or not await self.nsfw_cooldown_check(ctx.author.id, 5):
