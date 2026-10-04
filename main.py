@@ -427,7 +427,7 @@ class NSFWBot(commands.Cog):
     @commands.command()
     async def neko(self, ctx): 
         await self.get_nsfw(ctx, "neko", "🐱 Neko")
-
+# ==================== LỆNH NEKOBOT BỔ SUNG ====================
     @commands.command()
     async def paizuri(self, ctx): 
         await self.get_nsfw(ctx, "paizuri", "🍈 Paizuri")
@@ -439,6 +439,7 @@ class NSFWBot(commands.Cog):
     @commands.command()
     async def gonewild(self, ctx): 
         await self.get_nsfw(ctx, "gonewild", "🔥 Gone Wild")
+    
     # ==================== PREFIX L.R34 & L.ZI ====================
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -523,10 +524,7 @@ async def start(inter: discord.Interaction):
         "• `/spank @user` – Đánh mông người khác 🔥\n"
         "• `/finger @user` – Móc lồn người khác 😳\n"
         "• `/boobs @user` – Show vú người khác 🍈\n"
-        embed.add_field(name="🔞 Action", value="`/fuck` `/bj` `/anal` `/kiss` `/lick` `/spank` `/finger` `/cum_on` `/cowgirl` `/boobs`", inline=False)
-        embed.add_field(name="🔍 Search", value="`/r34 [tag] [số]`\n`/sex [tag]`\n`/doujin`\n`L.r34 [tag]` hoặc `L.zi [tag]`", inline=False)
-        embed.add_field(name="🌸 Nekobot", value="`!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!ahegao` `!anal` `!pussy` `!lewd` `!paizuri` `!4k` `!gonewild` `!nsfwrandom` `!neko`", inline=False)
-        await ctx.send(embed=embed)
+        "🌸 Nekobot `/!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!ahegao` `!anal` `!pussy` `!lewd` `!paizuri` `!4k` `!gonewild` `!nsfwrandom` `!neko`\n"
         "• `/setnsfw [on/off]` – Bật/tắt chế độ NSFW cho kênh\n\n"
         "💡 Dùng lệnh `/setnsfw on` để bật các lệnh NSFW cho kênh!\n"
         "❗ Nếu bot không phản hồi lệnh, hãy kiểm tra xem kênh đã bật NSFW chưa!")
