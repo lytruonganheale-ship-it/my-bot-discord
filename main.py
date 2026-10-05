@@ -264,46 +264,8 @@ class NSFWBot(commands.Cog):
                         return
             except:
                 continue
-        await interaction.followup.send(f"❌ Không tìm thấy cho `{tags}`") 
-    # ==================== GELBOORU SLASH (/gel) ====================
-    @app_commands.command(name="gel", description="🔞 Tìm ảnh từ Gelbooru")
-    @app_commands.describe(tags="Tag tìm kiếm", amount="Số lượng (1-8)")
-    async def gel(self, interaction: discord.Interaction, tags: str, amount: int = 4):
-        if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
-            return
-            
-        await interaction.response.defer()
-        amount = min(max(amount, 1), 8)
+        await interaction.followup.send(f"❌ Không tìm thấy cho `{tags}`")
 
-        url = "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1"
-        params = {
-            "tags": tags,
-            "limit": 100,
-            "user_id": GELBOORU_USER_ID,
-            "api_key": GELBOORU_API_KEY
-        }
-
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, timeout=12) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        if isinstance(data, dict):
-                            data = data.get("post") or data.get("posts") or []
-                        
-                        if data:
-                            selected = random.sample(data, min(amount, len(data)))
-                            for post in selected:
-                                file_url = post.get("file_url") or post.get("sample_url") or post.get("image")
-                                if file_url and file_url.startswith("//"):
-                                    file_url = "https:" + file_url
-                                if file_url:
-                                    await interaction.followup.send(f"**Gelbooru** | `{tags}`\n{file_url}")
-                            return
-        except Exception as e:
-            logging.error(f"Gelbooru Slash error: {e}")
-
-        await interaction.followup.send(f"❌ Không tìm thấy kết quả cho `{tags}` trên Gelbooru.")
     # ==================== DOUJIN ====================
     @app_commands.command(name="doujin", description="📚 Random doujin HentaiVNX")
     async def doujin(self, inter: discord.Interaction):
@@ -503,41 +465,29 @@ class NSFWBot(commands.Cog):
         else:
             await interaction.followup.send("❌ Không lấy được media từ mọi nguồn.")
 
-    # ==================== PREFIX L.R34, L.ZI & L.GEL ====================
+    # ==================== PREFIX L.R34 & L.ZI ====================
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
 
         content = message.content.lower().strip()
-        
-        if content.startswith(("l.r34 ", "l.zi ", "l.gel ")):
-            if not await self.is_nsfw(message):
-                return
-
-            prefix_length = 6 if content.startswith(("l.r34 ", "l.gel ")) else 5
-            tag = message.content[prefix_length:].strip()
+        if content.startswith(("l.r34 ", "l.zi ")):
+            tag = message.content[6:].strip() if content.startswith("l.r34 ") else message.content[5:].strip()
 
             if not tag:
-                return await message.reply("❌ Thiếu tag! Ví dụ: `L.gel blue_hair thighs`")
+                return await message.reply("❌ Thiếu tag! Ví dụ: `L.r34 blue_hair thighs`")
             if self.contains_blacklist(tag):
                 return await message.reply("❌ Tag bị blacklist.", delete_after=8)
 
             await message.channel.typing()
 
-            # L.gel CHỈ tìm ở Gelbooru
-            if content.startswith("l.gel "):
-                boorus = [
-                    {"name": "gelbooru", "url": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
-                     "params": {"tags": tag, "limit": 30, "user_id": GELBOORU_USER_ID, "api_key": GELBOORU_API_KEY}}
-                ]
-            else:
-                boorus = [
-                    {"name": "rule34", "url": "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1",
-                     "params": {"tags": tag, "limit": 30, "user_id": RULE34_USER_ID, "api_key": RULE34_API_KEY}},
-                    {"name": "gelbooru", "url": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
-                     "params": {"tags": tag, "limit": 30, "user_id": GELBOORU_USER_ID, "api_key": GELBOORU_API_KEY}}
-                ]
+            boorus = [
+                {"name": "rule34", "url": "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1",
+                 "params": {"tags": tag, "limit": 30, "user_id": RULE34_USER_ID, "api_key": RULE34_API_KEY}},
+                {"name": "gelbooru", "url": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
+                 "params": {"tags": tag, "limit": 30, "user_id": GELBOORU_USER_ID, "api_key": GELBOORU_API_KEY}},
+            ]
 
             found = False
             for booru in boorus:
@@ -555,7 +505,8 @@ class NSFWBot(commands.Cog):
                             if file_url and file_url.startswith("//"):
                                 file_url = "https:" + file_url
                             if file_url:
-                                await message.reply(f"**{booru['name']}** | `{tag}`\n{file_url}")
+                                msg = await message.reply(f"**{booru['name']}** | `{tag}`\n{file_url}")
+                                #asyncio.create_task(self.safe_delete(msg, 40))
                                 found = True
                                 break
                 except:
@@ -565,6 +516,7 @@ class NSFWBot(commands.Cog):
                 await message.reply(f"❌ Không tìm thấy cho `{tag}`", delete_after=10)
 
         await self.bot.process_commands(message)
+
     # ==================== HELP ====================
 @bot.tree.command(name="help", description="Xem danh sách các lệnh của bot")
 async def custom_help(ctx: discord.Interaction):
