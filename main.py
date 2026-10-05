@@ -389,51 +389,77 @@ class NSFWBot(commands.Cog):
             pass
 
         await ctx.send("❌ Không lấy được media từ mọi nguồn.", delete_after=8)
+        
+       ]
 
-    # Commands Nekobot
-    @commands.command()
-    async def hentai(self, ctx): await self.get_nsfw(ctx, "hentai", "🌸 Hentai")
+        for url in sources:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, timeout=10) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
 
-    @commands.command()
-    async def hentaigif(self, ctx): await self.get_nsfw(ctx, "hentai_gif", "🌸 Hentai GIF")
+                            image_url = data.get("message") or data.get("url")
+                            if image_url and image_url.startswith("http"):
+                                msg = await ctx.send(f"**{title}**:\n{image_url}")
+                                #asyncio.create_task(self.safe_delete(msg, 45))
+                                return
+            except:
+                continue
 
-    @commands.command()
-    async def ass(self, ctx): await self.get_nsfw(ctx, "ass", "🍑 Ass")
+        # Fallback dùng Danbooru
+        try:
+            fallback_tags = {
+                "hentai": "hentai",
+                "hentai_gif": "hentai animated",
+                "lewd": "lewd",
+                "ass": "ass",
+                "boobs": "breasts",
+                "thighs": "thighs",
+                "ahegao": "ahegao",
+                "anal": "anal",
+                "pussy": "pussy"
+            }
+            tag = fallback_tags.get(media_type, "hentai")
+            media = await self.fetch_danbooru(tag.replace("_gif", ""))
+            if media:
+                msg = await ctx.send(f"**{title}** (fallback):\n{media}")
+                #asyncio.create_task(self.safe_delete(msg, 45))
+                return
+        except:
+            pass
 
-    @commands.command()
-    async def boobs(self, ctx): await self.get_nsfw(ctx, "boobs", "🍒 Boobs")
+        await ctx.send("❌ Không lấy được media từ mọi nguồn.", delete_after=8)
+        
+        @app_commands.command(name="neko", description="Xem ảnh/ảnh động NSFW theo từng thể loại (Chạm để chọn)")
+        @app_commands.choices(thể_loại=[
+        app_commands.Choice(name="🌸 Hentai", value="hentai"),
+        app_commands.Choice(name="🎞️ Hentai GIF", value="hentai_gif"),
+        app_commands.Choice(name="🍑 Ass (Mông)", value="ass"),
+        app_commands.Choice(name="🍒 Boobs (Ngực)", value="boobs"),
+        app_commands.Choice(name="🦵 Thighs (Đùi)", value="thighs"),
+        app_commands.Choice(name="🍑 Anal", value="anal"),
+        app_commands.Choice(name="🌸 Pussy", value="pussy"),
+        app_commands.Choice(name="🎞️ Pussy GIF", value="pgif"),
+        app_commands.Choice(name="👬 Yaoi / BL", value="yaoi"),
+        app_commands.Choice(name="🦶 Feet (Chân)", value="feet"),
+        app_commands.Choice(name="🍈 Paizuri (Kẹp ngực)", value="paizuri"),
+        app_commands.Choice(name="🐱 Neko", value="neko"),
+        app_commands.Choice(name="🎭 Cosplay", value="cosplay"), # Mình đã gộp luôn lệnh !cosplay vào đây cho tiện
+        app_commands.Choice(name="🎲 Ngẫu nhiên (Random)", value="random")
+    ])
+    async def neko_command(self, interaction: discord.Interaction, thể_loại: app_commands.Choice[str]):
+        media_type = thể_loại.value
+        title = thể_loại.name
 
-    @commands.command()
-    async def thighs(self, ctx): await self.get_nsfw(ctx, "thighs", "🦵 Thighs")
+        # Xử lý riêng khi người dùng chạm chọn mục Random
+        if media_type == "random":
+            types = ["hentai", "lewd", "ass", "boobs", "thighs", "ahegao", "anal", "pussy", "cosplay"]
+            media_type = random.choice(types)
+            title = f"🎲 Random {media_type.title()}"
 
-    @commands.command()
-    async def anal(self, ctx): await self.get_nsfw(ctx, "anal", "🍑 Anal")
-
-    @commands.command()
-    async def pussy(self, ctx): await self.get_nsfw(ctx, "pussy", "🌸 Pussy")
-    # ==================== CÁC TAG NSFW MỚI THÊM ====================
-    @commands.command()
-    async def yaoi(self, ctx): await self.get_nsfw(ctx, "yaoi", "👬 Yaoi / BL")
-
-    @commands.command()
-    async def pgif(self, ctx): await self.get_nsfw(ctx, "pgif", "🎞️ Pussy GIF")
-
-    @commands.command()
-    async def feet(self, ctx): await self.get_nsfw(ctx, "feet", "🦶 Feet / Chân")
-
-    @commands.command()
-    async def paizuri(self, ctx): 
-        await self.get_nsfw(ctx, "paizuri", "🍈 Paizuri / Kẹp ngực")
-    
-    @commands.command()
-    async def nsfwrandom(self, ctx):
-        types = ["hentai","lewd","ass","boobs","thighs","ahegao","anal","pussy"]
-        t = random.choice(types)
-        await self.get_nsfw(ctx, t, f"🎲 Random {t.title()}")
-
-    @commands.command()
-    async def neko(self, ctx): 
-        await self.get_nsfw(ctx, "neko", "🐱 Neko")
+        # Tiến hành gọi hàm lấy ảnh và gửi
+        await self.get_nsfw_slash(interaction, media_type, title)
 
     # ==================== PREFIX L.R34 & L.ZI ====================
     @commands.Cog.listener()
