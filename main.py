@@ -50,11 +50,6 @@ GELBOORU_API_KEY = os.environ['GEL_KEY']
 
 nsfw_cooldown = {}
 
-BLACKLIST_TAGS = {
-    "loli", "shota", "toddler", "child", "lolicon", "shotacon", "underage", "cub",
-    "gore", "scat", "vore", "bestiality", "rape", "incest", "necrophilia",
-}
-
 # ====================== EVENTS ======================
 @bot.event
 async def on_ready():
@@ -93,10 +88,6 @@ class NSFWBot(commands.Cog):
             return False
         nsfw_cooldown[user_id] = now
         return True
-
-    def contains_blacklist(self, tags: str) -> bool:
-        tag_list = {t.lower().strip() for t in tags.split()}
-        return bool(tag_list & BLACKLIST_TAGS)
 
     async def safe_delete(self, message: discord.Message, delay: int = 45):
         await asyncio.sleep(delay)
@@ -231,7 +222,7 @@ class NSFWBot(commands.Cog):
     @app_commands.command(name="r34", description="🔞 Tìm ảnh Rule34/Gelbooru")
     @app_commands.describe(tags="Tag tìm kiếm", amount="Số lượng (1-8)")
     async def r34(self, interaction: discord.Interaction, tags: str, amount: int = 4):
-        if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
+        if not await self.is_nsfw(interaction):
             return
         await interaction.response.defer()
         amount = min(max(amount, 1), 8)
@@ -270,7 +261,7 @@ class NSFWBot(commands.Cog):
     @app_commands.command(name="dan", description="🔞 Tìm ảnh/video từ Danbooru")
     @app_commands.describe(tags="Tag tìm kiếm (gõ để hiện gợi ý)", amount="Số lượng ảnh (1-8)")
     async def dan(self, interaction: discord.Interaction, tags: str, amount: int = 1):
-        if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
+        if not await self.is_nsfw(interaction):
             return
 
         await interaction.response.defer()
@@ -540,8 +531,6 @@ class NSFWBot(commands.Cog):
 
             if not tag:
                 return await message.reply("❌ Thiếu tag! Ví dụ: `L.r34 blue_hair thighs`")
-            if self.contains_blacklist(tag):
-                return await message.reply("❌ Tag bị blacklist.", delete_after=8)
 
             await message.channel.typing()
 
