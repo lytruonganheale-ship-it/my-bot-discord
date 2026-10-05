@@ -390,7 +390,6 @@ class NSFWBot(commands.Cog):
 
         await ctx.send("❌ Không lấy được media từ mọi nguồn.", delete_after=8)
         
-       ]
 
         for url in sources:
             try:
