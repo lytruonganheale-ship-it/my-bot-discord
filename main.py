@@ -493,7 +493,7 @@ class NSFWBot(commands.Cog):
         embed = discord.Embed(title="🚀 SIÊU BOT NSFW v4.0", color=0xFF1493)
         embed.add_field(name="🔞 Action", value="`/fuck` `/bj` `/anal` `/kiss` `/lick` `/spank` `/finger` `/cum_on` `/cowgirl` `/boobs`", inline=False)
         embed.add_field(name="🔍 Search", value="`/r34 [tag] [số]`\n`/doujin`\n`L.r34 [tag]` hoặc `L.zi [tag]`", inline=False)
-        embed.add_field(name="🌸 Nekobot", value="`!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!anal` `!pussy` `!nsfwrandom` `!neko` `!feet` `!pgif` `!yaoi`", inline=False)
+        embed.add_field(name="🌸 Nekobot", value="`!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!anal` `!pussy` `!nsfwrandom` `!neko` `!feet` `!pgif` `!yaoi` `paizuri`", inline=False)
         await ctx.send(embed=embed)
 
 # ==== LỆNH /START CHỈ CHO ADMIN ====
