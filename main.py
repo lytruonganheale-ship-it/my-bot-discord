@@ -489,14 +489,14 @@ class NSFWBot(commands.Cog):
 
     # ==================== HELP ====================
 @bot.tree.command(name="help", description="Xem danh sách các lệnh của bot")
-async def custom_help(self, ctx: discord.Interaction): # Đổi tham số ctx thành discord.Interaction
+async def custom_help(ctx: discord.Interaction):
     embed = discord.Embed(title="🚀 SIÊU BOT NSFW v4.0", color=0xFF1493)
     embed.add_field(name="🔞 Action", value="`/fuck` `/bj` `/anal` `/kiss` `/lick` `/spank` `/finger` `/cum_on` `/cowgirl` `/boobs`", inline=False)
     embed.add_field(name="🔍 Search", value="`/r34 [tag] [số]`\n`/doujin`\n`L.r34 [tag]` hoặc `L.zi [tag]`", inline=False)
-    embed.add_field(name="🌸 Nekobot", value="`!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!anal` `!pussy` `!nsfwrandom` `!neko` `!feet` `!pgif` `!yaoi` `paizuri`", inline=False)
-    
-    # Slash command dùng response.send_message thay cho ctx.send
-    await ctx.response.send_message(embed=embed)
+    embed.add_field(name="🌸 Nekobot", value="`!hentai` `!hentaigif` `!ass` `!boobs` `!thighs` `!anal` `!pussy` `!nsfwrandom` `!neko` `!feet` `!pgif` `!yaoi` `!paizuri`", inline=False)
+                    
+    await ctx.response.send_message(embed=embed, ephemeral=True)
+
 
 # ==== LỆNH /START CHỈ CHO ADMIN ====
 @bot.tree.command(name="start", description="📢 Giới thiệu bot (chỉ Admin dùng được)")
