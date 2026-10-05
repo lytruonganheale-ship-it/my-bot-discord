@@ -229,7 +229,7 @@ class NSFWBot(commands.Cog):
 
     # ==================== R34 SLASH ====================
     @app_commands.command(name="r34", description="🔞 Tìm ảnh Rule34/Gelbooru")
-    @app_commands.describe(tags="Nhập 1 đến 4 tag (cách nhau bởi khoảng trắng)", amount="Số lượng (1-8)")
+    @app_commands.describe(tags="Tag tìm kiếm", amount="Số lượng (1-8)")
     async def r34(self, interaction: discord.Interaction, tags: str, amount: int = 4):
         if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
             return
@@ -259,48 +259,12 @@ class NSFWBot(commands.Cog):
                             if file_url and file_url.startswith("//"):
                                 file_url = "https:" + file_url
                             if file_url:
-                                await interaction.followup.send(f"**{booru['name']}** | `{tags}`\n{file_url}")
+                                msg = await interaction.followup.send(f"**{booru['name']}** | `{tags}`\n{file_url}")
+                                #asyncio.create_task(self.safe_delete(msg, 48))
                         return
             except:
                 continue
         await interaction.followup.send(f"❌ Không tìm thấy cho `{tags}`")
-
-    # Auto-complete hỗ trợ gợi ý khi nhập nhiều tag (1, 2, 3, 4 tags)
-    @r34.autocomplete("tags")
-    async def r34_tags_autocomplete(self, interaction: discord.Interaction, current: str):
-        if not current:
-            return []
-
-        # Tách danh sách các tag đã nhập
-        tag_list = current.split(" ")
-        # Lấy từ khóa cuối cùng đang gõ để gửi lên API gợi ý
-        current_typing = tag_list[-1]
-        # Các tag đã gõ xong trước đó
-        previous_tags = " ".join(tag_list[:-1])
-
-        if not current_typing:
-            return []
-
-        try:
-            url = f"https://api.rule34.xxx/autocomplete.php?q={urllib.parse.quote(current_typing)}"
-            headers = {"User-Agent": "DiscordBot/1.0"}
-
-            async with aiohttp.ClientSession(headers=headers) as session:
-                async with session.get(url, timeout=5) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        choices = []
-                        for item in data:
-                            tag_name = item.get("value") or item.get("label")
-                            if tag_name:
-                                # Ghép tag vừa chọn vào sau các tag đã gõ trước đó
-                                full_tag_value = f"{previous_tags} {tag_name}".strip() if previous_tags else tag_name
-                                choices.append(app_commands.Choice(name=full_tag_value[:100], value=full_tag_value))
-                        return choices[:25]
-        except Exception as e:
-            logging.error(f"Rule34 autocomplete error: {e}")
-
-        return []
 
     # ==================== SLASH /DAN ====================
     @app_commands.command(name="dan", description="🔞 Tìm ảnh/video từ Danbooru")
