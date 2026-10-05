@@ -267,8 +267,8 @@ class NSFWBot(commands.Cog):
                 continue
         await interaction.followup.send(f"❌ Không tìm thấy cho `{tags}`")
 
-    # ==================== SLASH /GEL ====================
-@app_commands.command(name="gel", description="🔞 Tìm ảnh/video từ Gelbooru")
+    #LỆNH GELBR
+    @app_commands.command(name="gel", description="🔞 Tìm ảnh/video từ Gelbooru")
 @app_commands.describe(tags="Tag tìm kiếm", amount="Số lượng ảnh (1-8)")
 async def gel(self, interaction: discord.Interaction, tags: str, amount: int = 1):
     if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
@@ -277,7 +277,6 @@ async def gel(self, interaction: discord.Interaction, tags: str, amount: int = 1
     await interaction.response.defer()
     amount = min(max(amount, 1), 8)
 
-    # Format tags đúng chuẩn Gelbooru
     tag_list = [t.strip().replace(" ", "_") for t in tags.strip().split() if t.strip()]
     formatted_tags = "+".join(tag_list)
 
@@ -285,7 +284,7 @@ async def gel(self, interaction: discord.Interaction, tags: str, amount: int = 1
         f"https://gelbooru.com/index.php"
         f"?page=dapi&s=post&q=index&json=1"
         f"&tags={formatted_tags}"
-        f"&limit=100"
+        f"&limit=50"
         f"&user_id={GELBOORU_USER_ID}"
         f"&api_key={GELBOORU_API_KEY}"
     )
@@ -298,51 +297,46 @@ async def gel(self, interaction: discord.Interaction, tags: str, amount: int = 1
 
     try:
         async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=12)) as resp:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                text = await resp.text()
+                logging.info(f"[GEL] Status: {resp.status} | Tags: {formatted_tags}")
+                logging.info(f"[GEL] Response preview: {text[:300]}")
+
                 if resp.status != 200:
-                    logging.error(f"Gelbooru HTTP {resp.status}")
-                    return await interaction.followup.send(
-                        f"❌ Gelbooru trả về lỗi {resp.status}. Kiểm tra lại API key."
-                    )
+                    return await interaction.followup.send(f"❌ Gelbooru lỗi HTTP {resp.status}")
 
-                data = await resp.json(content_type=None)
+                import json
+                data = json.loads(text)
 
-                # Lấy danh sách post
                 if isinstance(data, dict):
                     posts = data.get("post") or data.get("posts") or []
                 else:
                     posts = data if isinstance(data, list) else []
 
+                logging.info(f"[GEL] Số post nhận được: {len(posts) if posts else 0}")
+
                 if not posts:
-                    return await interaction.followup.send(
-                        f"❌ Không tìm thấy kết quả nào cho tag `{tags}` trên Gelbooru."
-                    )
+                    return await interaction.followup.send(f"❌ Không tìm thấy kết quả cho `{tags}`")
 
-                # Ưu tiên file_url → sample_url
-                valid_posts = []
+                valid = []
                 for p in posts:
-                    if not isinstance(p, dict):
-                        continue
-                    file_url = p.get("file_url") or p.get("sample_url")
-                    if file_url:
-                        if file_url.startswith("//"):
-                            file_url = "https:" + file_url
-                        valid_posts.append(file_url)
+                    if isinstance(p, dict):
+                        link = p.get("file_url") or p.get("sample_url")
+                        if link:
+                            if link.startswith("//"):
+                                link = "https:" + link
+                            valid.append(link)
 
-                if not valid_posts:
-                    return await interaction.followup.send(
-                        f"❌ Tìm thấy post nhưng không có link ảnh hợp lệ cho `{tags}`."
-                    )
+                if not valid:
+                    return await interaction.followup.send(f"❌ Có post nhưng không có link ảnh hợp lệ")
 
-                selected = random.sample(valid_posts, min(amount, len(valid_posts)))
+                selected = random.sample(valid, min(amount, len(valid)))
                 for img in selected:
                     await interaction.followup.send(f"**Gelbooru** | `{tags}`\n{img}")
 
-    except asyncio.TimeoutError:
-        await interaction.followup.send("❌ Gelbooru phản hồi quá chậm (timeout).")
     except Exception as e:
-        logging.error(f"Gelbooru error: {e}")
-        await interaction.followup.send(f"❌ Lỗi khi gọi Gelbooru: `{str(e)[:80]}`")
+        logging.error(f"[GEL] Lỗi: {e}")
+        await interaction.followup.send(f"❌ Lỗi: `{str(e)[:100]}`")
     # ==================== SLASH /DAN ====================
     @app_commands.command(name="dan", description="🔞 Tìm ảnh/video từ Danbooru")
     @app_commands.describe(tags="Tag tìm kiếm (tối đa 2 tag)", amount="Số lượng ảnh (1-8)")
