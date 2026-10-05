@@ -1,4 +1,3 @@
-from __future__ import annotations
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -268,70 +267,68 @@ class NSFWBot(commands.Cog):
         await interaction.followup.send(f"❌ Không tìm thấy cho `{tags}`")
 
     # ==================== SLASH /DAN ====================
-@app_commands.command(name="dan", description="🔞 Tìm ảnh/video từ Danbooru")
-@app_commands.describe(tags="Tag tìm kiếm (gõ để hiện gợi ý)", amount="Số lượng ảnh (1-8)")
-async def dan(self, interaction: discord.Interaction, tags: str, amount: int = 1):
-    if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
-        return
+    @app_commands.command(name="dan", description="🔞 Tìm ảnh/video từ Danbooru")
+    @app_commands.describe(tags="Tag tìm kiếm (gõ để hiện gợi ý)", amount="Số lượng ảnh (1-8)")
+    async def dan(self, interaction: discord.Interaction, tags: str, amount: int = 1):
+        if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
+            return
 
-    await interaction.response.defer()
-    amount = min(max(amount, 1), 8)
+        await interaction.response.defer()
+        amount = min(max(amount, 1), 8)
 
-    formatted_tags = urllib.parse.quote("+".join(tags.strip().split()))
-    url = f"https://danbooru.donmai.us/posts.json?tags={formatted_tags}&limit=100"
-    headers = {"User-Agent": "DiscordBot/1.0"}
-
-    try:
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(url, timeout=10) as resp:
-                if resp.status == 200:
-                    posts = await resp.json(content_type=None)
-
-                    if isinstance(posts, list) and len(posts) > 0:
-                        valid_posts = [p for p in posts if p.get("file_url") or p.get("large_file_url")]
-                        if valid_posts:
-                            selected = random.sample(valid_posts, min(amount, len(valid_posts)))
-                            for post in selected:
-                                file_url = post.get("file_url") or post.get("large_file_url")
-                                if file_url.startswith("//"):
-                                    file_url = "https:" + file_url
-                                await interaction.followup.send(f"**Danbooru** | `{tags}`\n{file_url}")
-                            return
-    except Exception as e:
-        logging.error(f"Danbooru error: {e}")
-
-    await interaction.followup.send(f"❌ Không tìm thấy kết quả nào cho tag `{tags}` trên Danbooru.")
-
-
-# ===== AUTOCOMPLETE CHO /DAN =====
-@dan.autocomplete("tags")
-async def dan_tags_autocomplete(interaction: discord.Interaction, current: str):
-    if not current:
-        return []
-
-    try:
-        url = f"https://danbooru.donmai.us/autocomplete.json?search[query]={urllib.parse.quote(current)}&search[type]=tag&limit=15"
+        formatted_tags = urllib.parse.quote("+".join(tags.strip().split()))
+        url = f"https://danbooru.donmai.us/posts.json?tags={formatted_tags}&limit=100"
         headers = {"User-Agent": "DiscordBot/1.0"}
 
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(url, timeout=5) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    choices = []
-                    for item in data:
-                        tag_name = item.get("value") or item.get("label") or item.get("name")
-                        if tag_name:
-                            # Hiện thêm số lần dùng tag cho dễ chọn
-                            post_count = item.get("post_count") or item.get("category") or ""
-                            name = f"{tag_name}"
-                            if post_count:
-                                name = f"{tag_name} ({post_count})"
-                            choices.append(app_commands.Choice(name=name[:100], value=tag_name))
-                    return choices[:25]  # Discord tối đa 25 choice
-    except Exception as e:
-        logging.error(f"Danbooru autocomplete error: {e}")
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(url, timeout=10) as resp:
+                    if resp.status == 200:
+                        posts = await resp.json(content_type=None)
 
-    return []
+                        if isinstance(posts, list) and len(posts) > 0:
+                            valid_posts = [p for p in posts if p.get("file_url") or p.get("large_file_url")]
+                            if valid_posts:
+                                selected = random.sample(valid_posts, min(amount, len(valid_posts)))
+                                for post in selected:
+                                    file_url = post.get("file_url") or post.get("large_file_url")
+                                    if file_url.startswith("//"):
+                                        file_url = "https:" + file_url
+                                    await interaction.followup.send(f"**Danbooru** | `{tags}`\n{file_url}")
+                                return
+        except Exception as e:
+            logging.error(f"Danbooru error: {e}")
+
+        await interaction.followup.send(f"❌ Không tìm thấy kết quả nào cho tag `{tags}` trên Danbooru.")
+
+    # Auto-complete gợi ý tag cho lệnh /dan
+    @dan.autocomplete("tags")
+    async def dan_tags_autocomplete(self, interaction: discord.Interaction, current: str):
+        if not current:
+            return []
+
+        try:
+            url = f"https://danbooru.donmai.us/autocomplete.json?search[query]={urllib.parse.quote(current)}&search[type]=tag&limit=15"
+            headers = {"User-Agent": "DiscordBot/1.0"}
+
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(url, timeout=5) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        choices = []
+                        for item in data:
+                            tag_name = item.get("value") or item.get("label") or item.get("name")
+                            if tag_name:
+                                post_count = item.get("post_count") or item.get("category") or ""
+                                name = f"{tag_name}"
+                                if post_count:
+                                    name = f"{tag_name} ({post_count})"
+                                choices.append(app_commands.Choice(name=name[:100], value=tag_name))
+                        return choices[:25]
+        except Exception as e:
+            logging.error(f"Danbooru autocomplete error: {e}")
+
+        return []
     # ==================== DOUJIN ====================
     @app_commands.command(name="doujin", description="📚 Random doujin HentaiVNX")
     async def doujin(self, inter: discord.Interaction):
