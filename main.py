@@ -267,65 +267,81 @@ class NSFWBot(commands.Cog):
         await interaction.followup.send(f"❌ Không tìm thấy cho `{tags}`")
 
     # ==================== SLASH /GEL ====================
-    @app_commands.command(name="gel", description="🔞 Tìm ảnh/video từ Gelbooru")
-    @app_commands.describe(tags="Tag tìm kiếm (ví dụ: full_body, 1girl nude)", amount="Số lượng ảnh (1-8)")
-    async def gel(self, interaction: discord.Interaction, tags: str, amount: int = 1):
-        if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
-            return
+@app_commands.command(name="gel", description="🔞 Tìm ảnh/video từ Gelbooru")
+@app_commands.describe(tags="Tag tìm kiếm", amount="Số lượng ảnh (1-8)")
+async def gel(self, interaction: discord.Interaction, tags: str, amount: int = 1):
+    if not await self.is_nsfw(interaction) or self.contains_blacklist(tags):
+        return
 
-        await interaction.response.defer()
-        amount = min(max(amount, 1), 8)
+    await interaction.response.defer()
+    amount = min(max(amount, 1), 8)
 
-        # 1. Xử lý tag: tách từ, đổi khoảng trắng thành _ và nối các tag lại bằng +
-        tag_parts = [t.strip().replace(" ", "_") for t in tags.strip().split() if t.strip()]
-        formatted_tags = "+".join(tag_parts)
+    # Format tags đúng chuẩn Gelbooru
+    tag_list = [t.strip().replace(" ", "_") for t in tags.strip().split() if t.strip()]
+    formatted_tags = "+".join(tag_list)
 
-        # Lấy Key từ biến môi trường (Ưu tiên GEL_KEY/GEL_ID trước)
-        user_id = os.getenv("GEL_ID") or os.getenv("GELBOORU_USER_ID", "")
-        api_key = os.getenv("GEL_KEY") or os.getenv("GELBOORU_API_KEY", "")
+    url = (
+        f"https://gelbooru.com/index.php"
+        f"?page=dapi&s=post&q=index&json=1"
+        f"&tags={formatted_tags}"
+        f"&limit=100"
+        f"&user_id={GELBOORU_USER_ID}"
+        f"&api_key={GELBOORU_API_KEY}"
+    )
 
-        # 2. Cấu trúc URL đặt api_key và user_id lên trước
-        url = f"https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&user_id={user_id}&api_key={api_key}&tags={formatted_tags}&limit=100"
-        
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
-        }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+        "Referer": "https://gelbooru.com/"
+    }
 
-        try:
-            async with aiohttp.ClientSession(headers=headers) as session:
-                async with session.get(url, timeout=10) as resp:
-                    if resp.status == 200:
-                        # Dùng text() để ép kiểu parse JSON an toàn
-                        text_data = await resp.text()
-                        
-                        import json
-                        try:
-                            data = json.loads(text_data)
-                        except:
-                            data = {}
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=12)) as resp:
+                if resp.status != 200:
+                    logging.error(f"Gelbooru HTTP {resp.status}")
+                    return await interaction.followup.send(
+                        f"❌ Gelbooru trả về lỗi {resp.status}. Kiểm tra lại API key."
+                    )
 
-                        # Trích xuất danh sách post từ Gelbooru
-                        posts = []
-                        if isinstance(data, dict):
-                            posts = data.get("post", [])
-                        elif isinstance(data, list):
-                            posts = data
+                data = await resp.json(content_type=None)
 
-                        if posts and len(posts) > 0:
-                            # Lọc bài đăng có link ảnh file_url
-                            valid_posts = [p for p in posts if isinstance(p, dict) and p.get("file_url")]
-                            if valid_posts:
-                                selected = random.sample(valid_posts, min(amount, len(valid_posts)))
-                                for post in selected:
-                                    file_url = post.get("file_url")
-                                    if file_url.startswith("//"):
-                                        file_url = "https:" + file_url
-                                    await interaction.followup.send(f"**Gelbooru** | `{tags}`\n{file_url}")
-                                return
-        except Exception as e:
-            logging.error(f"Gelbooru API error: {e}")
+                # Lấy danh sách post
+                if isinstance(data, dict):
+                    posts = data.get("post") or data.get("posts") or []
+                else:
+                    posts = data if isinstance(data, list) else []
 
-        await interaction.followup.send(f"❌ Không tìm thấy kết quả nào cho tag `{tags}` trên Gelbooru.")
+                if not posts:
+                    return await interaction.followup.send(
+                        f"❌ Không tìm thấy kết quả nào cho tag `{tags}` trên Gelbooru."
+                    )
+
+                # Ưu tiên file_url → sample_url
+                valid_posts = []
+                for p in posts:
+                    if not isinstance(p, dict):
+                        continue
+                    file_url = p.get("file_url") or p.get("sample_url")
+                    if file_url:
+                        if file_url.startswith("//"):
+                            file_url = "https:" + file_url
+                        valid_posts.append(file_url)
+
+                if not valid_posts:
+                    return await interaction.followup.send(
+                        f"❌ Tìm thấy post nhưng không có link ảnh hợp lệ cho `{tags}`."
+                    )
+
+                selected = random.sample(valid_posts, min(amount, len(valid_posts)))
+                for img in selected:
+                    await interaction.followup.send(f"**Gelbooru** | `{tags}`\n{img}")
+
+    except asyncio.TimeoutError:
+        await interaction.followup.send("❌ Gelbooru phản hồi quá chậm (timeout).")
+    except Exception as e:
+        logging.error(f"Gelbooru error: {e}")
+        await interaction.followup.send(f"❌ Lỗi khi gọi Gelbooru: `{str(e)[:80]}`")
     # ==================== SLASH /DAN ====================
     @app_commands.command(name="dan", description="🔞 Tìm ảnh/video từ Danbooru")
     @app_commands.describe(tags="Tag tìm kiếm (tối đa 2 tag)", amount="Số lượng ảnh (1-8)")
