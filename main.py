@@ -236,14 +236,14 @@ class NSFWBot(commands.Cog):
         tag3: str = None,
         tag4: str = None,
         tag5: str = None,
-        amount: int = 4
+        amount: int = 1
     ):
         if not await self.is_nsfw(interaction):
             return
         await interaction.response.defer()
         amount = min(max(amount, 1), 8)
 
-        # Gộp tất cả tag lại
+        # Gộp tất cả tag
         tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
         tags = " ".join(tags_list)
 
@@ -251,39 +251,21 @@ class NSFWBot(commands.Cog):
             return await interaction.followup.send("❌ Phải nhập ít nhất 1 tag!")
 
         boorus = [
-            {
-                "name": "rule34.xxx",
-                "url": "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1",
-                "params": {
-                    "tags": tags,
-                    "limit": 100,
-                    "user_id": RULE34_USER_ID,
-                    "api_key": RULE34_API_KEY
-                }
-            },
-            {
-                "name": "gelbooru",
-                "url": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
-                "params": {
-                    "tags": tags,
-                    "limit": 100,
-                    "user_id": GELBOORU_USER_ID,
-                    "api_key": GELBOORU_API_KEY
-                }
-            },
+            {"name": "rule34.xxx", "url": "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1",
+             "params": {"tags": tags, "limit": 100, "user_id": RULE34_USER_ID, "api_key": RULE34_API_KEY}},
+            {"name": "gelbooru", "url": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
+             "params": {"tags": tags, "limit": 100, "user_id": GELBOORU_USER_ID, "api_key": GELBOORU_API_KEY}},
         ]
 
         for booru in boorus:
             try:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(booru["url"], params=booru["params"], timeout=15) as resp:
-                        if resp.status != 200:
-                            continue
+                        if resp.status != 200: continue
                         data = await resp.json()
                         if isinstance(data, dict):
                             data = data.get("post") or data.get("posts") or []
-                        if not data:
-                            continue
+                        if not data: continue
 
                         selected = random.sample(data, min(amount, len(data)))
                         for post in selected:
@@ -302,18 +284,20 @@ class NSFWBot(commands.Cog):
     # ==================== AUTOCOMPLETE CHO /R34 ====================
     async def r34_autocomplete(self, interaction: discord.Interaction, current: str):
         try:
-            # Dùng endpoint chính thức
             url = f"https://api.rule34.xxx/autocomplete.php?q={urllib.parse.quote(current or '')}"
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=5) as resp:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(url, timeout=3) as resp:
                     if resp.status == 200:
-                        data = await resp.json()
+                        data = await resp.json(content_type=None)  # bỏ qua content-type sai
                         choices = []
                         for item in data:
                             label = item.get("label") or item.get("value")
                             value = item.get("value") or item.get("label")
                             if label and value:
-                                choices.append(app_commands.Choice(name=label[:100], value=value))
+                                choices.append(app_commands.Choice(name=str(label)[:100], value=str(value)))
                         return choices[:25]
         except Exception as e:
             logging.error(f"R34 autocomplete error: {e}")
