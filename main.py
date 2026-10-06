@@ -82,8 +82,8 @@ class NSFWBot(commands.Cog):
             return False
         return True
 
-        async def nsfw_cooldown_check(self, user_id: int, seconds: int = 6):
-            now = datetime.utcnow()
+    async def nsfw_cooldown_check(self, user_id: int, seconds: int = 6):
+        now = datetime.utcnow()
 
         # Dọn những user đã hết cooldown
         expired = [uid for uid, t in list(nsfw_cooldown.items()) if now - t >= timedelta(seconds=seconds)]
