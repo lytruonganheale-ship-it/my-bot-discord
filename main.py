@@ -118,7 +118,7 @@ class NSFWBot(commands.Cog):
     async def nsfw_action(self, inter: discord.Interaction, user: discord.User, tag: str, text: str, emoji: str):
         if not await self.is_nsfw(inter):
             return
-        if not await self.nsfw_cooldown_check(inter.user.id, 8):
+        if not await self.nsfw_cooldown_check(inter.user.id, 1):
             return await inter.followup.send("⏳ Đừng spam!", ephemeral=True)
 
         await inter.response.defer()
@@ -347,7 +347,7 @@ class NSFWBot(commands.Cog):
     async def hentaivideo(self, interaction: discord.Interaction):
         if not await self.is_nsfw(interaction):
             return
-        if not await self.nsfw_cooldown_check(interaction.user.id, 8):
+        if not await self.nsfw_cooldown_check(interaction.user.id, 1):
             return await interaction.response.send_message("⏳ Chờ chút bro!", ephemeral=True)
 
         await interaction.response.defer()
@@ -395,7 +395,7 @@ class NSFWBot(commands.Cog):
         await interaction.followup.send("https://hentaiz.bot\n🎥 https://hentaivietsub.com/🎥 Vào đây chọn video random nè 🔥")
     # ==================== NEKOBOT ĐÃ SỬA ====================
     async def get_nsfw(self, ctx, media_type: str, title: str):
-        if not await self.is_nsfw(ctx) or not await self.nsfw_cooldown_check(ctx.author.id, 5):
+        if not await self.is_nsfw(ctx) or not await self.nsfw_cooldown_check(ctx.author.id, 1):
             return
 
         await ctx.channel.typing()
