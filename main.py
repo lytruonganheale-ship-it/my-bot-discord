@@ -259,7 +259,7 @@ class NSFWBot(commands.Cog):
 
         timeout = aiohttp.ClientTimeout(total=15)
 
-async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
     for booru in boorus:
         try:
             async with session.get(booru["url"], params=booru["params"]) as resp:
