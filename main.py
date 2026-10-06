@@ -257,7 +257,7 @@ class NSFWBot(commands.Cog):
              "params": {"tags": tags, "limit": 100, "user_id": GELBOORU_USER_ID, "api_key": GELBOORU_API_KEY}},
         ]
 
-                timeout = aiohttp.ClientTimeout(total=15)
+            timeout = aiohttp.ClientTimeout(total=15)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             for booru in boorus:
                 try:
