@@ -257,27 +257,53 @@ class NSFWBot(commands.Cog):
              "params": {"tags": tags, "limit": 100, "user_id": GELBOORU_USER_ID, "api_key": GELBOORU_API_KEY}},
         ]
 
-        for booru in boorus:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(booru["url"], params=booru["params"], timeout=15) as resp:
-                        if resp.status != 200: continue
-                        data = await resp.json()
-                        if isinstance(data, dict):
-                            data = data.get("post") or data.get("posts") or []
-                        if not data: continue
+        timeout = aiohttp.ClientTimeout(total=15)
 
-                        selected = random.sample(data, min(amount, len(data)))
-                        for post in selected:
-                            file_url = post.get("file_url") or post.get("sample_url") or post.get("image")
-                            if file_url and file_url.startswith("//"):
-                                file_url = "https:" + file_url
-                            if file_url:
-                                await interaction.followup.send(f"**{booru['name']}** | `{tags}`\n{file_url}")
-                        return
-            except Exception as e:
-                logging.error(f"R34 error ({booru['name']}): {e}")
-                continue
+async with aiohttp.ClientSession(timeout=timeout) as session:
+    for booru in boorus:
+        try:
+            async with session.get(booru["url"], params=booru["params"]) as resp:
+                if resp.status != 200:
+                    continue
+
+                data = await resp.json()
+
+                # Parse linh hoạt hơn (lấy từ bản 2)
+                if isinstance(data, dict):
+                    data = (
+                        data.get("post")
+                        or data.get("posts")
+                        or data.get("@attributes", {}).get("post")
+                        or []
+                    )
+
+                if not data:
+                    continue
+
+                selected = random.sample(data, min(amount, len(data)))
+
+                for post in selected:
+                    file_url = (
+                        post.get("file_url")
+                        or post.get("sample_url")
+                        or post.get("image")
+                    )
+
+                    if file_url and file_url.startswith("//"):
+                        file_url = "https:" + file_url
+
+                    if file_url:
+                        await interaction.followup.send(
+                            f"**{booru['name']}** | `{tags}`\n{file_url}"
+                        )
+                        # asyncio.create_task(self.safe_delete(msg, 48))
+
+                # Thành công rồi thì dừng, không chạy sang booru tiếp theo
+                return
+
+        except Exception as e:
+            print(f"Lỗi khi gọi {booru['name']}: {e}")
+            continue
 
         await interaction.followup.send(f"❌ Không tìm thấy cho `{tags}`")
 
