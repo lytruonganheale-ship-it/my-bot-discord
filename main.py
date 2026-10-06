@@ -218,31 +218,72 @@ class NSFWBot(commands.Cog):
             await interaction.followup.send("❌ Lỗi khi xóa tin nhắn.", ephemeral=True)
             logging.error(f"Clear error: {e}")
 
-    # ==================== R34 SLASH ====================
-    @app_commands.command(name="r34", description="🔞 Tìm ảnh Rule34/Gelbooru")
-    @app_commands.describe(tags="Tag tìm kiếm", amount="Số lượng (1-8)")
-    async def r34(self, interaction: discord.Interaction, tags: str, amount: int = 4):
+    # ==================== R34 SLASH (nhiều tag + autocomplete) ====================
+    @app_commands.command(name="r34", description="🔞 Tìm ảnh Rule34/Gelbooru (hỗ trợ nhiều tag)")
+    @app_commands.describe(
+        tag="Tag chính (bắt buộc)",
+        tag2="Tag phụ 2 (tùy chọn)",
+        tag3="Tag phụ 3 (tùy chọn)",
+        tag4="Tag phụ 4 (tùy chọn)",
+        tag5="Tag phụ 5 (tùy chọn)",
+        amount="Số lượng ảnh (1-8)"
+    )
+    async def r34(
+        self,
+        interaction: discord.Interaction,
+        tag: str,
+        tag2: str = None,
+        tag3: str = None,
+        tag4: str = None,
+        tag5: str = None,
+        amount: int = 4
+    ):
         if not await self.is_nsfw(interaction):
             return
         await interaction.response.defer()
         amount = min(max(amount, 1), 8)
 
+        # Gộp tất cả tag lại
+        tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
+        tags = " ".join(tags_list)
+
+        if not tags:
+            return await interaction.followup.send("❌ Phải nhập ít nhất 1 tag!")
+
         boorus = [
-            {"name": "rule34.xxx", "url": "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1",
-             "params": {"tags": tags, "limit": 100, "user_id": RULE34_USER_ID, "api_key": RULE34_API_KEY}},
-            {"name": "gelbooru", "url": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
-             "params": {"tags": tags, "limit": 100, "user_id": GELBOORU_USER_ID, "api_key": GELBOORU_API_KEY}},
+            {
+                "name": "rule34.xxx",
+                "url": "https://api.rule34.xxx/index.php?page=dapi&s=post&q=index&json=1",
+                "params": {
+                    "tags": tags,
+                    "limit": 100,
+                    "user_id": RULE34_USER_ID,
+                    "api_key": RULE34_API_KEY
+                }
+            },
+            {
+                "name": "gelbooru",
+                "url": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
+                "params": {
+                    "tags": tags,
+                    "limit": 100,
+                    "user_id": GELBOORU_USER_ID,
+                    "api_key": GELBOORU_API_KEY
+                }
+            },
         ]
 
         for booru in boorus:
             try:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(booru["url"], params=booru["params"], timeout=15) as resp:
-                        if resp.status != 200: continue
+                        if resp.status != 200:
+                            continue
                         data = await resp.json()
                         if isinstance(data, dict):
                             data = data.get("post") or data.get("posts") or []
-                        if not data: continue
+                        if not data:
+                            continue
 
                         selected = random.sample(data, min(amount, len(data)))
                         for post in selected:
@@ -250,13 +291,53 @@ class NSFWBot(commands.Cog):
                             if file_url and file_url.startswith("//"):
                                 file_url = "https:" + file_url
                             if file_url:
-                                msg = await interaction.followup.send(f"**{booru['name']}** | `{tags}`\n{file_url}")
-                                #asyncio.create_task(self.safe_delete(msg, 48))
+                                await interaction.followup.send(f"**{booru['name']}** | `{tags}`\n{file_url}")
                         return
-            except:
+            except Exception as e:
+                logging.error(f"R34 error ({booru['name']}): {e}")
                 continue
+
         await interaction.followup.send(f"❌ Không tìm thấy cho `{tags}`")
 
+    # ==================== AUTOCOMPLETE CHO /R34 ====================
+    async def r34_autocomplete(self, interaction: discord.Interaction, current: str):
+        try:
+            # Dùng endpoint chính thức
+            url = f"https://api.rule34.xxx/autocomplete.php?q={urllib.parse.quote(current or '')}"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=5) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        choices = []
+                        for item in data:
+                            label = item.get("label") or item.get("value")
+                            value = item.get("value") or item.get("label")
+                            if label and value:
+                                choices.append(app_commands.Choice(name=label[:100], value=value))
+                        return choices[:25]
+        except Exception as e:
+            logging.error(f"R34 autocomplete error: {e}")
+        return []
+
+    @r34.autocomplete("tag")
+    async def r34_tag_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.r34_autocomplete(interaction, current)
+
+    @r34.autocomplete("tag2")
+    async def r34_tag2_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.r34_autocomplete(interaction, current)
+
+    @r34.autocomplete("tag3")
+    async def r34_tag3_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.r34_autocomplete(interaction, current)
+
+    @r34.autocomplete("tag4")
+    async def r34_tag4_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.r34_autocomplete(interaction, current)
+
+    @r34.autocomplete("tag5")
+    async def r34_tag5_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.r34_autocomplete(interaction, current)
     # ==================== SLASH /DAN ====================
     @app_commands.command(name="dan", description="🔞 Tìm ảnh/video từ Danbooru")
     @app_commands.describe(tags="Tag tìm kiếm (gõ để hiện gợi ý)", amount="Số lượng ảnh (1-8)")
