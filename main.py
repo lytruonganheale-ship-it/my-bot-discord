@@ -529,110 +529,6 @@ class NSFWBot(commands.Cog):
     async def ntr_tag5_autocomplete(self, interaction: discord.Interaction, current: str):
         return await self.ntr_autocomplete(interaction, current)
 
-        # ==================== AUTOCOMPLETE CHO /HTVN ====================
-    async def htvn_autocomplete(self, interaction: discord.Interaction, current: str):
-        htvn_tags = ["Ntr", "Milf", "Cheating", "Ahegao", "Schoolgirl", "Romance", "Yuri"]
-        current = (current or "").lower().strip()
-        if not current:
-            return [app_commands.Choice(name=tag, value=tag) for tag in htvn_tags[:15]]
-        matches = [tag for tag in htvn_tags if current in tag.lower()]
-        return [app_commands.Choice(name=tag, value=tag) for tag in (matches or htvn_tags)[:25]]
-
-    # ==================== HENTAIVNX COMMAND ====================
-    @app_commands.command(name="htvn", description="🇻🇳 Tìm truyện việt hóa từ HentaiVNX (hỗ trợ nhiều tag)")
-    @app_commands.describe(
-        tag="Tag chính (Bắt buộc nhập)",
-        tag2="Tag phụ 2",
-        tag3="Tag phụ 3",
-        tag4="Tag phụ 4",
-        tag5="Tag phụ 5",
-        amount="Số lượng truyện (1-5)"
-    )
-    async def htvn(
-        self,
-        inter: discord.Interaction,
-        tag: str,
-        tag2: str = None,
-        tag3: str = None,
-        tag4: str = None,
-        tag5: str = None,
-        amount: int = 1
-    ):
-        if not await self.is_nsfw(inter):
-            return
-
-        await inter.response.defer()
-
-        amount = min(max(amount, 1), 5)
-        tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
-        query = " ".join(tags_list)
-
-        base_url = "https://hentaivnx1.com"
-        search_url = f"{base_url}/tim-kiem-nang-cao?keyword={urllib.parse.quote(query)}"
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Referer": base_url,
-            "Accept-Language": "en-US,en;q=0.9,vi;q=0.8"
-        }
-
-        try:
-            async with aiohttp.ClientSession(headers=headers) as session:
-                async with session.get(search_url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
-                    if resp.status != 200:
-                        return await inter.followup.send(f"❌ Không thể kết nối website (Mã lỗi: `{resp.status}`).")
-                    html_content = await resp.text()
-
-            soup = BeautifulSoup(html_content, "html.parser")
-            items = soup.select(".list-stories .story-item") or soup.select(".box-list .item") or soup.select(".list-items .item")
-
-            if not items:
-                return await inter.followup.send(f"❌ Không tìm thấy truyện dịch nào với từ khóa `{query}` trên HentaiVNX.")
-
-            selected_items = random.sample(items, min(amount, len(items)))
-
-            for item in selected_items:
-                title_element = item.select_one(".story-title a") or item.select_one("h3 a") or item.select_one("a.title")
-                title = title_element.text.strip() if title_element else "Truyện HentaiVNX"
-
-                link = title_element["href"] if title_element and title_element.has_attr("href") else base_url
-                if not link.startswith("http"):
-                    link = f"{base_url}{link}"
-
-                img_element = item.select_one("img")
-                cover = None
-                if img_element:
-                    cover = img_element.get("data-src") or img_element.get("data-original") or img_element.get("src")
-                if cover and not cover.startswith("http"):
-                    cover = f"{base_url}{cover}"
-
-                chapter_element = item.select_one(".latest-chapter") or item.select_one(".chapter") or item.select_one(".eps")
-                chapter_info = chapter_element.text.strip() if chapter_element else "Oneshot/Full"
-
-                embed = discord.Embed(
-                    title=title[:256],
-                    url=link,
-                    color=0x32CD32,
-                    description=f"**Mới nhất:** `{chapter_info}`\n**Tags:** `{query}`"
-                )
-                if cover:
-                    embed.set_image(url=cover)
-                embed.set_footer(text="Xem trực tiếp truyện trên website HentaiVNX")
-
-                await inter.followup.send(embed=embed)
-
-        except Exception as e:
-            logging.error(f"HentaiVNX command error: {e}")
-            await inter.followup.send("❌ Hệ thống gặp sự cố khi cào dữ liệu HentaiVNX, vui lòng thử lại sau.")
-
-    # Đăng ký autocomplete chuẩn cho từng tham số tag
-    @htvn.autocomplete("tag")
-    @htvn.autocomplete("tag2")
-    @htvn.autocomplete("tag3")
-    @htvn.autocomplete("tag4")
-    @htvn.autocomplete("tag5")
-    async def htvn_tag_auto(self, interaction: discord.Interaction, current: str):
-        return await self.htvn_autocomplete(interaction, current)
     # ==================== DOUJIN ====================
     @app_commands.command(name="doujin", description="📚 Random doujin từ nhentai")
     async def doujin(self, inter: discord.Interaction):
@@ -1050,7 +946,7 @@ async def start(inter: discord.Interaction):
         "• `/boobs @user` – Show vú người khác 🍈\n"
         "• `/setnsfw [on/off]` – Bật/tắt chế độ NSFW cho kênh\n\n"
         "💡 Dùng lệnh `/setnsfw on` để bật các lệnh NSFW cho kênh!\n"
-        "❗ Nếu bot không phản hồi lệnh, hãy kiểm tra xem kênh đã bật NSFW chưa dùng lệnh !help để xem các lệnh của nekobot🌸")
+        "❗ Nếu bot không phản hồi lệnh, hãy kiểm tra xem kênh đã bật NSFW chưa dùng lệnh /help để xem các lệnh của nekobot🌸")
 
 # ====================== RUN ======================
 async def main():
