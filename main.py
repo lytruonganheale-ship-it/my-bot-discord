@@ -408,7 +408,7 @@ class NSFWBot(commands.Cog):
             logging.error(f"Danbooru autocomplete error: {e}")
 
         return []
-        # ==================== DOUJIN ====================
+            # ==================== DOUJIN ====================
     @app_commands.command(name="doujin", description="📚 Random doujin từ nhentai")
     async def doujin(self, inter: discord.Interaction):
         if not await self.is_nsfw(inter):
