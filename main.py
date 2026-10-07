@@ -489,7 +489,7 @@ class NSFWBot(commands.Cog):
                 "❌ Hiện tại không lấy được doujin.\n"
                 "Bạn có thể vào trực tiếp: https://nhentai.net/random/"
             )
-            # ==================== HENTAI VIDEO ====================
+    # ==================== HENTAI VIDEO ====================
     @app_commands.command(name="hentaivideo", description="🎥 Random video hentai")
     async def hentaivideo(self, interaction: discord.Interaction):
         if not await self.is_nsfw(interaction):
@@ -500,89 +500,76 @@ class NSFWBot(commands.Cog):
         await interaction.response.defer()
 
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json",
-            "Content-Type": "application/json"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
+
+        apis = [
+            "https://mdtahseen7-hentai-api.hf.space/api/hanime/search/random",
+            "https://hentai-api.mdtahseen7378.workers.dev/api/hanime/search/random",
+        ]
 
         timeout = aiohttp.ClientTimeout(total=12)
 
         async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
-            # Cách 1: Thử API random của hanime
-            try:
-                seed = random.randint(100000, 999999999)
-                url = f"https://members.hanime.tv/rapi/v7/hentai_videos?source=randomize&r={seed}"
-                async with session.get(url) as resp:
-                    if resp.status == 200:
+            for api_url in apis:
+                try:
+                    async with session.get(api_url) as resp:
+                        if resp.status != 200:
+                            continue
                         data = await resp.json()
-                        videos = data.get("hentai_videos") or []
-                        if videos:
-                            video = random.choice(videos)
-                            title = video.get("name") or video.get("slug") or "Random Hentai"
-                            slug = video.get("slug")
-                            cover = video.get("cover_url") or video.get("poster_url")
-                            link = f"https://hanime.tv/videos/hentai/{slug}" if slug else None
 
-                            if link:
-                                embed = discord.Embed(
-                                    title="🎥 Random Hentai Video",
-                                    description=title[:250],
-                                    url=link,
-                                    color=0xFF1493
-                                )
-                                if cover:
-                                    embed.set_image(url=cover)
-                                embed.set_footer(text="Nhấn vào tiêu đề để xem video")
-                                await interaction.followup.send(embed=embed)
-                                return
-            except Exception as e:
-                logging.error(f"Hanime random error: {e}")
+                        results = data.get("results") or data.get("data") or data.get("hentai_videos") or []
+                        if not results and isinstance(data, list):
+                            results = data
 
-            # Cách 2: Thử search ngẫu nhiên
-            try:
-                queries = ["overflow", "sister", "maid", "succubus", "school", "netorare", "vanilla"]
-                query = random.choice(queries)
-                search_url = "https://search.htv-services.com/"
-                payload = {
-                    "search_text": query,
-                    "tags": [],
-                    "tags_mode": "AND",
-                    "brands": [],
-                    "blacklist": [],
-                    "order_by": "created_at_unix",
-                    "ordering": "desc",
-                    "page": 0
-                }
-                async with session.post(search_url, json=payload) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        hits = data.get("hits") or []
-                        if hits:
-                            video = random.choice(hits)
-                            title = video.get("name") or "Random Hentai"
-                            slug = video.get("slug")
-                            cover = video.get("cover_url")
-                            link = f"https://hanime.tv/videos/hentai/{slug}" if slug else None
+                        if not results:
+                            continue
 
-                            if link:
-                                embed = discord.Embed(
-                                    title="🎥 Random Hentai Video",
-                                    description=title[:250],
-                                    url=link,
-                                    color=0xFF1493
-                                )
-                                if cover:
-                                    embed.set_image(url=cover)
-                                embed.set_footer(text="Nhấn vào tiêu đề để xem video")
-                                await interaction.followup.send(embed=embed)
-                                return
-            except Exception as e:
-                logging.error(f"Hanime search error: {e}")
+                        video = random.choice(results)
 
-        # Fallback cuối cùng
+                        title = (
+                            video.get("name")
+                            or video.get("title")
+                            or video.get("slug")
+                            or "Random Hentai Video"
+                        )
+                        slug = video.get("slug") or video.get("id") or ""
+                        cover = (
+                            video.get("cover_url")
+                            or video.get("coverImage")
+                            or video.get("poster")
+                            or video.get("cover")
+                            or video.get("image")
+                        )
+                        link = (
+                            video.get("link")
+                            or video.get("url")
+                            or (f"https://hanime.tv/videos/hentai/{slug}" if slug else None)
+                        )
+
+                        if not link:
+                            continue
+
+                        embed = discord.Embed(
+                            title="🎥 Random Hentai Video",
+                            description=title[:250],
+                            url=link,
+                            color=0xFF1493
+                        )
+                        if cover:
+                            embed.set_image(url=cover)
+                        embed.set_footer(text="Nhấn vào tiêu đề để xem video")
+
+                        await interaction.followup.send(embed=embed)
+                        return
+
+                except Exception as e:
+                    logging.error(f"Hentaivideo API error ({api_url}): {e}")
+                    continue
+
         await interaction.followup.send(
-            "❌ Hiện tại API đang bị chặn.\n\n"
-            "**Vào đây chọn video random:**\n"
+            "❌ Hiện tại không lấy được video.\n"
+            "Bạn có thể vào trực tiếp:\n"
             "• https://hanime.tv\n"
             "• https://hentaiz.bot\n"
             "• https://hentaivietsub.com"
