@@ -489,7 +489,7 @@ class NSFWBot(commands.Cog):
                 "❌ Hiện tại không lấy được doujin.\n"
                 "Bạn có thể vào trực tiếp: https://nhentai.net/random/"
             )
-    # ==================== HENTAI VIDEO ====================
+        # ==================== HENTAI VIDEO ====================
     @app_commands.command(name="hentaivideo", description="🎥 Random video hentai")
     async def hentaivideo(self, interaction: discord.Interaction):
         if not await self.is_nsfw(interaction):
@@ -500,9 +500,11 @@ class NSFWBot(commands.Cog):
         await interaction.response.defer()
 
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json"
         }
 
+        # Các API trung gian lấy từ hanime / hentaihaven...
         apis = [
             "https://mdtahseen7-hentai-api.hf.space/api/hanime/search/random",
             "https://hentai-api.mdtahseen7378.workers.dev/api/hanime/search/random",
@@ -516,11 +518,16 @@ class NSFWBot(commands.Cog):
                     async with session.get(api_url) as resp:
                         if resp.status != 200:
                             continue
+
                         data = await resp.json()
 
-                        results = data.get("results") or data.get("data") or data.get("hentai_videos") or []
-                        if not results and isinstance(data, list):
-                            results = data
+                        # Xử lý nhiều format trả về khác nhau
+                        results = (
+                            data.get("results")
+                            or data.get("data")
+                            or data.get("hentai_videos")
+                            or (data if isinstance(data, list) else [])
+                        )
 
                         if not results:
                             continue
@@ -567,6 +574,7 @@ class NSFWBot(commands.Cog):
                     logging.error(f"Hentaivideo API error ({api_url}): {e}")
                     continue
 
+        # Fallback nếu mọi API đều chết
         await interaction.followup.send(
             "❌ Hiện tại không lấy được video.\n"
             "Bạn có thể vào trực tiếp:\n"
