@@ -408,7 +408,132 @@ class NSFWBot(commands.Cog):
             logging.error(f"Danbooru autocomplete error: {e}")
 
         return []
-            # ==================== DOUJIN ====================
+            # ==================== NTR ====================
+    @app_commands.command(name="ntr", description="📚 Tìm truyện NTR từ nhentai (hỗ trợ nhiều tag)")
+    @app_commands.describe(
+        tag="Tag chính (để trống = random NTR)",
+        tag2="Tag phụ 2",
+        tag3="Tag phụ 3",
+        tag4="Tag phụ 4",
+        tag5="Tag phụ 5",
+        amount="Số lượng truyện (1-5)"
+    )
+    async def ntr(
+        self,
+        inter: discord.Interaction,
+        tag: str = None,
+        tag2: str = None,
+        tag3: str = None,
+        tag4: str = None,
+        tag5: str = None,
+        amount: int = 1
+    ):
+        if not await self.is_nsfw(inter):
+            return
+        await inter.response.defer()
+
+        amount = min(max(amount, 1), 5)
+
+        tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
+        
+        if not tags_list:
+            query = "ntr"
+        else:
+            if "ntr" not in [t.lower() for t in tags_list]:
+                tags_list.insert(0, "ntr")
+            query = " ".join(tags_list)
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+            "Referer": "https://nhentai.net/"
+        }
+
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                search_url = f"https://nhentai.net/api/v2/search?query={urllib.parse.quote(query)}&page=1"
+                
+                async with session.get(search_url, timeout=10) as resp:
+                    if resp.status != 200:
+                        raise Exception(f"API trả về status {resp.status}")
+                    data = await resp.json()
+
+                results = data.get("result") or []
+                if not results:
+                    return await inter.followup.send(f"❌ Không tìm thấy truyện nào với từ khóa `{query}`")
+
+                selected = random.sample(results, min(amount, len(results)))
+
+                for item in selected:
+                    gallery_id = item.get("id")
+                    title = item.get("english_title") or item.get("japanese_title") or f"NTR #{gallery_id}"
+                    media_id = item.get("media_id")
+                    num_pages = item.get("num_pages") or "?"
+
+                    thumb = item.get("thumbnail")
+                    if thumb:
+                        cover = f"https://t.nhentai.net/{thumb}"
+                    elif media_id:
+                        cover = f"https://t.nhentai.net/galleries/{media_id}/cover.jpg"
+                    else:
+                        cover = None
+
+                    link = f"https://nhentai.net/g/{gallery_id}/"
+
+                    embed = discord.Embed(
+                        title=title[:250],
+                        url=link,
+                        color=0xFF1493,
+                        description=f"**ID:** `{gallery_id}` | **Pages:** {num_pages}\n**Tags:** `{query}`"
+                    )
+                    if cover:
+                        embed.set_image(url=cover)
+                    embed.set_footer(text="Click tiêu đề để đọc trên nhentai")
+
+                    await inter.followup.send(embed=embed)
+
+        except Exception as e:
+            logging.error(f"NTR command error: {e}")
+            await inter.followup.send("❌ Lỗi khi tìm truyện NTR, thử lại sau nhé.")
+
+    # ==================== AUTOCOMPLETE CHO /NTR ====================
+    async def ntr_autocomplete(self, interaction: discord.Interaction, current: str):
+        popular_tags = [
+            "ntr", "netorare", "netori", "cheating", "ahegao", "schoolgirl",
+            "married", "wife", "cuckold", "impregnation", "pregnant",
+            "big breasts", "milf", "sister", "mother", "teacher", "swimsuit",
+            "nakadashi", "creampie", "mind break", "rape", "blackmail",
+            "full color", "english", "chinese", "japanese"
+        ]
+
+        current = (current or "").lower().strip()
+        
+        if not current:
+            return [app_commands.Choice(name=tag, value=tag) for tag in popular_tags[:15]]
+
+        matches = [tag for tag in popular_tags if current in tag.lower()]
+        return [app_commands.Choice(name=tag, value=tag) for tag in (matches or popular_tags)[:25]]
+
+    @ntr.autocomplete("tag")
+    async def ntr_tag_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.ntr_autocomplete(interaction, current)
+
+    @ntr.autocomplete("tag2")
+    async def ntr_tag2_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.ntr_autocomplete(interaction, current)
+
+    @ntr.autocomplete("tag3")
+    async def ntr_tag3_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.ntr_autocomplete(interaction, current)
+
+    @ntr.autocomplete("tag4")
+    async def ntr_tag4_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.ntr_autocomplete(interaction, current)
+
+    @ntr.autocomplete("tag5")
+    async def ntr_tag5_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.ntr_autocomplete(interaction, current)
+    # ==================== DOUJIN ====================
     @app_commands.command(name="doujin", description="📚 Random doujin từ nhentai")
     async def doujin(self, inter: discord.Interaction):
         if not await self.is_nsfw(inter):
