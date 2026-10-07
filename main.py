@@ -409,55 +409,141 @@ class NSFWBot(commands.Cog):
 
         return []
     # ==================== DOUJIN ====================
+        # ==================== DOUJIN ====================
     @app_commands.command(name="doujin", description="📚 Random doujin từ nhentai")
-async def doujin(self, inter: discord.Interaction):
-    if not await self.is_nsfw(inter):
-        return
-    await inter.response.defer()
+    async def doujin(self, inter: discord.Interaction):
+        if not await self.is_nsfw(inter):
+            return
+        await inter.response.defer()
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
 
-    try:
-        async with aiohttp.ClientSession(headers=headers) as session:
-            # Lấy random gallery từ nhentai
-            async with session.get("https://nhentai.net/random/", allow_redirects=False, timeout=10) as resp:
-                if resp.status in (301, 302, 303, 307, 308):
-                    location = resp.headers.get("Location")
-                    if location:
-                        # location dạng /g/123456/
-                        gallery_id = location.strip("/").split("/")[-1]
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                # Lấy random gallery từ nhentai
+                async with session.get("https://nhentai.net/random/", allow_redirects=False, timeout=10) as resp:
+                    if resp.status in (301, 302, 303, 307, 308):
+                        location = resp.headers.get("Location")
+                        if location:
+                            gallery_id = location.strip("/").split("/")[-1]
+                        else:
+                            raise Exception("Không lấy được redirect")
                     else:
-                        raise Exception("Không lấy được redirect")
-                else:
-                    raise Exception(f"Status {resp.status}")
+                        raise Exception(f"Status {resp.status}")
 
-            # Lấy thông tin gallery
-            api_url = f"https://nhentai.net/api/gallery/{gallery_id}"
-            async with session.get(api_url, timeout=10) as resp:
-                if resp.status != 200:
-                    raise Exception("API nhentai lỗi")
-                data = await resp.json()
+                # Lấy thông tin gallery
+                api_url = f"https://nhentai.net/api/gallery/{gallery_id}"
+                async with session.get(api_url, timeout=10) as resp:
+                    if resp.status != 200:
+                        raise Exception("API nhentai lỗi")
+                    data = await resp.json()
 
-            title = data.get("title", {}).get("pretty") or data.get("title", {}).get("english") or f"Doujin #{gallery_id}"
-            media_id = data.get("media_id")
-            cover = f"https://t.nhentai.net/galleries/{media_id}/cover.jpg"
-            link = f"https://nhentai.net/g/{gallery_id}/"
+                title = data.get("title", {}).get("pretty") or data.get("title", {}).get("english") or f"Doujin #{gallery_id}"
+                media_id = data.get("media_id")
+                cover = f"https://t.nhentai.net/galleries/{media_id}/cover.jpg"
+                link = f"https://nhentai.net/g/{gallery_id}/"
 
-            embed = discord.Embed(
-                title=title[:250],
-                url=link,
-                color=0xFF69B4,
-                description=f"**ID:** `{gallery_id}`\n**Pages:** {data.get('num_pages', '?')}"
-            )
-            embed.set_image(url=cover)
-            embed.set_footer(text="Click tiêu đề để đọc trên nhentai")
-            await inter.followup.send(embed=embed)
+                embed = discord.Embed(
+                    title=title[:250],
+                    url=link,
+                    color=0xFF69B4,
+                    description=f"**ID:** `{gallery_id}`\n**Pages:** {data.get('num_pages', '?')}"
+                )
+                embed.set_image(url=cover)
+                embed.set_footer(text="Click tiêu đề để đọc trên nhentai")
+                await inter.followup.send(embed=embed)
 
-    except Exception as e:
-        logging.error(f"Doujin error: {e}")
-        await inter.followup.send("❌ Không lấy được doujin lúc này, thử lại sau nhé.")
+        except Exception as e:
+            logging.error(f"Doujin error: {e}")
+            await inter.followup.send("❌ Không lấy được doujin lúc này, thử lại sau nhé.")
+
+    # ==================== HENTAI VIDEO ====================
+    @app_commands.command(name="hentaivideo", description="🎥 Random video hentai")
+    async def hentaivideo(self, interaction: discord.Interaction):
+        if not await self.is_nsfw(interaction):
+            return
+        if not await self.nsfw_cooldown_check(interaction.user.id, 3):
+            return await interaction.response.send_message("⏳ Chờ chút bro!", ephemeral=True)
+
+        await interaction.response.defer()
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+
+        apis = [
+            "https://mdtahseen7-hentai-api.hf.space/api/hanime/search/random",
+            "https://hentai-api.mdtahseen7378.workers.dev/api/hanime/search/random",
+        ]
+
+        timeout = aiohttp.ClientTimeout(total=12)
+
+        async with aiohttp.ClientSession(headers=headers, timeout=timeout) as session:
+            for api_url in apis:
+                try:
+                    async with session.get(api_url) as resp:
+                        if resp.status != 200:
+                            continue
+                        data = await resp.json()
+
+                        results = data.get("results") or data.get("data") or data.get("hentai_videos") or []
+                        if not results and isinstance(data, list):
+                            results = data
+
+                        if not results:
+                            continue
+
+                        video = random.choice(results)
+
+                        title = (
+                            video.get("name")
+                            or video.get("title")
+                            or video.get("slug")
+                            or "Random Hentai Video"
+                        )
+                        slug = video.get("slug") or video.get("id") or ""
+                        cover = (
+                            video.get("cover_url")
+                            or video.get("coverImage")
+                            or video.get("poster")
+                            or video.get("cover")
+                            or video.get("image")
+                        )
+                        link = (
+                            video.get("link")
+                            or video.get("url")
+                            or (f"https://hanime.tv/videos/hentai/{slug}" if slug else None)
+                        )
+
+                        if not link:
+                            continue
+
+                        embed = discord.Embed(
+                            title="🎥 Random Hentai Video",
+                            description=title[:250],
+                            url=link,
+                            color=0xFF1493
+                        )
+                        if cover:
+                            embed.set_image(url=cover)
+                        embed.set_footer(text="Nhấn vào tiêu đề để xem video")
+
+                        await interaction.followup.send(embed=embed)
+                        return
+
+                except Exception as e:
+                    logging.error(f"Hentaivideo API error ({api_url}): {e}")
+                    continue
+
+        await interaction.followup.send(
+            "❌ Hiện tại không lấy được video.\n"
+            "Bạn có thể vào trực tiếp:\n"
+            "• https://hanime.tv\n"
+            "• https://hentaiz.bot\n"
+            "• https://hentaivietsub.com"
+        )
     # ==================== HENTAIZ RANDOM VIDEO (Đẹp) ====================
     @app_commands.command(name="hentaivideo", description="🎥 Random video hentai từ hentaiz.bot https://hentaivietsub.com/")
     async def hentaivideo(self, interaction: discord.Interaction):
