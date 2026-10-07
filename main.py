@@ -436,12 +436,7 @@ class NSFWBot(commands.Cog):
 
         tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
         
-        if not tags_list:
-            query = "ntr"
-        else:
-            if "ntr" not in [t.lower() for t in tags_list]:
-                tags_list.insert(0, "ntr")
-            query = " ".join(tags_list)
+        query = " ".join(tags_list)
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
