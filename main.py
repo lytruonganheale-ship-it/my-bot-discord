@@ -408,7 +408,6 @@ class NSFWBot(commands.Cog):
             logging.error(f"Danbooru autocomplete error: {e}")
 
         return []
-    # ==================== DOUJIN ====================
         # ==================== DOUJIN ====================
     @app_commands.command(name="doujin", description="📚 Random doujin từ nhentai")
     async def doujin(self, inter: discord.Interaction):
@@ -417,48 +416,79 @@ class NSFWBot(commands.Cog):
         await inter.response.defer()
 
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+            "Referer": "https://nhentai.net/"
         }
+
+        gallery_id = None
+        data = None
 
         try:
             async with aiohttp.ClientSession(headers=headers) as session:
-                # Lấy random gallery từ nhentai
-                async with session.get("https://nhentai.net/random/", allow_redirects=False, timeout=10) as resp:
-                    if resp.status in (301, 302, 303, 307, 308):
-                        location = resp.headers.get("Location")
-                        if location:
-                            gallery_id = location.strip("/").split("/")[-1]
-                        else:
-                            raise Exception("Không lấy được redirect")
-                    else:
-                        raise Exception(f"Status {resp.status}")
+                # Cách 1: API v2 random (mới nhất)
+                try:
+                    async with session.get("https://nhentai.net/api/v2/galleries/random", timeout=8) as resp:
+                        if resp.status == 200:
+                            rand_data = await resp.json()
+                            gallery_id = rand_data.get("id")
+                except:
+                    pass
+
+                # Cách 2: Nếu không được thì random ID cũ
+                if not gallery_id:
+                    gallery_id = random.randint(300000, 520000)
 
                 # Lấy thông tin gallery
-                api_url = f"https://nhentai.net/api/gallery/{gallery_id}"
-                async with session.get(api_url, timeout=10) as resp:
-                    if resp.status != 200:
-                        raise Exception("API nhentai lỗi")
-                    data = await resp.json()
+                for api_url in [
+                    f"https://nhentai.net/api/v2/galleries/{gallery_id}",
+                    f"https://nhentai.net/api/gallery/{gallery_id}"
+                ]:
+                    try:
+                        async with session.get(api_url, timeout=8) as resp:
+                            if resp.status == 200:
+                                data = await resp.json()
+                                break
+                    except:
+                        continue
 
-                title = data.get("title", {}).get("pretty") or data.get("title", {}).get("english") or f"Doujin #{gallery_id}"
-                media_id = data.get("media_id")
-                cover = f"https://t.nhentai.net/galleries/{media_id}/cover.jpg"
+                if not data:
+                    raise Exception("Không lấy được dữ liệu gallery")
+
+                # Xử lý title
+                title_obj = data.get("title") or {}
+                if isinstance(title_obj, dict):
+                    title = title_obj.get("pretty") or title_obj.get("english") or title_obj.get("japanese") or f"Doujin #{gallery_id}"
+                else:
+                    title = str(title_obj) or f"Doujin #{gallery_id}"
+
+                media_id = data.get("media_id") or data.get("id")
+                num_pages = data.get("num_pages") or data.get("num_pages") or "?"
+
+                # Cover
+                cover = None
+                if media_id:
+                    cover = f"https://t.nhentai.net/galleries/{media_id}/cover.jpg"
+
                 link = f"https://nhentai.net/g/{gallery_id}/"
 
                 embed = discord.Embed(
                     title=title[:250],
                     url=link,
                     color=0xFF69B4,
-                    description=f"**ID:** `{gallery_id}`\n**Pages:** {data.get('num_pages', '?')}"
+                    description=f"**ID:** `{gallery_id}`\n**Pages:** {num_pages}"
                 )
-                embed.set_image(url=cover)
+                if cover:
+                    embed.set_image(url=cover)
                 embed.set_footer(text="Click tiêu đề để đọc trên nhentai")
                 await inter.followup.send(embed=embed)
 
         except Exception as e:
             logging.error(f"Doujin error: {e}")
-            await inter.followup.send("❌ Không lấy được doujin lúc này, thử lại sau nhé.")
-
+            await inter.followup.send(
+                "❌ Hiện tại không lấy được doujin.\n"
+                "Bạn có thể vào trực tiếp: https://nhentai.net/random/"
+            )
     # ==================== HENTAI VIDEO ====================
     @app_commands.command(name="hentaivideo", description="🎥 Random video hentai")
     async def hentaivideo(self, interaction: discord.Interaction):
