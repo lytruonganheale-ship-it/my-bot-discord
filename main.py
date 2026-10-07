@@ -234,7 +234,7 @@ class NSFWBot(commands.Cog):
         tag3="Tag phụ 3 (tùy chọn)",
         tag4="Tag phụ 4 (tùy chọn)",
         tag5="Tag phụ 5 (tùy chọn)",
-        amount="Số lượng ảnh (1-8)"
+        amount="Số lượng ảnh (1-30)"
     )
     async def r34(
         self,
@@ -249,7 +249,7 @@ class NSFWBot(commands.Cog):
         if not await self.is_nsfw(interaction):
             return
         await interaction.response.defer()
-        amount = min(max(amount, 1), 8)
+        amount = min(max(amount, 1), 30)
 
         # Gộp tất cả tag
         tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
@@ -347,13 +347,13 @@ class NSFWBot(commands.Cog):
         return await self.r34_autocomplete(interaction, current)
     # ==================== SLASH /DAN ====================
     @app_commands.command(name="dan", description="🔞 Tìm ảnh/video từ Danbooru")
-    @app_commands.describe(tags="Tag tìm kiếm (gõ để hiện gợi ý)", amount="Số lượng ảnh (1-8)")
+    @app_commands.describe(tags="Tag tìm kiếm (gõ để hiện gợi ý)", amount="Số lượng ảnh (1-30)")
     async def dan(self, interaction: discord.Interaction, tags: str, amount: int = 1):
         if not await self.is_nsfw(interaction):
             return
 
         await interaction.response.defer()
-        amount = min(max(amount, 1), 8)
+        amount = min(max(amount, 1), 30)
 
         formatted_tags = urllib.parse.quote("+".join(tags.strip().split()))
         url = f"https://danbooru.donmai.us/posts.json?tags={formatted_tags}&limit=100"
@@ -416,7 +416,7 @@ class NSFWBot(commands.Cog):
         tag3="Tag phụ 3",
         tag4="Tag phụ 4",
         tag5="Tag phụ 5",
-        amount="Số lượng truyện (1-5)"
+        amount="Số lượng truyện (1-10)"
     )
     async def ntr(
         self,
@@ -432,7 +432,7 @@ class NSFWBot(commands.Cog):
             return
         await inter.response.defer()
 
-        amount = min(max(amount, 1), 5)
+        amount = min(max(amount, 1), 10)
 
         tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
         
