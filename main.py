@@ -409,27 +409,55 @@ class NSFWBot(commands.Cog):
 
         return []
     # ==================== DOUJIN ====================
-    @app_commands.command(name="doujin", description="📚 Random doujin HentaiVNX")
-    async def doujin(self, inter: discord.Interaction):
-        if not await self.is_nsfw(inter): return
-        await inter.response.defer()
-        try:
-            page = random.randint(1, 30)
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"https://www.hentaivnx.us/the-loai/truyen-tranh-hentai/page/{page}/") as r:
-                    soup = BeautifulSoup(await r.text(), "html.parser")
-                    items = soup.select(".page-item-detail")
-                    item = random.choice(items)
-                    title = item.select_one("h3").text.strip()
-                    link = item.select_one("a")["href"]
-                    thumb = item.select_one("img")["src"]
+    @app_commands.command(name="doujin", description="📚 Random doujin từ nhentai")
+async def doujin(self, inter: discord.Interaction):
+    if not await self.is_nsfw(inter):
+        return
+    await inter.response.defer()
 
-                    embed = discord.Embed(title=title, url=link, color=0xFF69B4)
-                    embed.set_image(url=thumb)
-                    embed.set_footer(text="Click tiêu đề để đọc")
-                    await inter.followup.send(embed=embed)
-        except:
-            await inter.followup.send("❌ Lỗi khi lấy doujin.")
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+
+    try:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            # Lấy random gallery từ nhentai
+            async with session.get("https://nhentai.net/random/", allow_redirects=False, timeout=10) as resp:
+                if resp.status in (301, 302, 303, 307, 308):
+                    location = resp.headers.get("Location")
+                    if location:
+                        # location dạng /g/123456/
+                        gallery_id = location.strip("/").split("/")[-1]
+                    else:
+                        raise Exception("Không lấy được redirect")
+                else:
+                    raise Exception(f"Status {resp.status}")
+
+            # Lấy thông tin gallery
+            api_url = f"https://nhentai.net/api/gallery/{gallery_id}"
+            async with session.get(api_url, timeout=10) as resp:
+                if resp.status != 200:
+                    raise Exception("API nhentai lỗi")
+                data = await resp.json()
+
+            title = data.get("title", {}).get("pretty") or data.get("title", {}).get("english") or f"Doujin #{gallery_id}"
+            media_id = data.get("media_id")
+            cover = f"https://t.nhentai.net/galleries/{media_id}/cover.jpg"
+            link = f"https://nhentai.net/g/{gallery_id}/"
+
+            embed = discord.Embed(
+                title=title[:250],
+                url=link,
+                color=0xFF69B4,
+                description=f"**ID:** `{gallery_id}`\n**Pages:** {data.get('num_pages', '?')}"
+            )
+            embed.set_image(url=cover)
+            embed.set_footer(text="Click tiêu đề để đọc trên nhentai")
+            await inter.followup.send(embed=embed)
+
+    except Exception as e:
+        logging.error(f"Doujin error: {e}")
+        await inter.followup.send("❌ Không lấy được doujin lúc này, thử lại sau nhé.")
     # ==================== HENTAIZ RANDOM VIDEO (Đẹp) ====================
     @app_commands.command(name="hentaivideo", description="🎥 Random video hentai từ hentaiz.bot https://hentaivietsub.com/")
     async def hentaivideo(self, interaction: discord.Interaction):
