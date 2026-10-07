@@ -529,6 +529,118 @@ class NSFWBot(commands.Cog):
     async def ntr_tag5_autocomplete(self, interaction: discord.Interaction, current: str):
         return await self.ntr_autocomplete(interaction, current)
 
+        # ==================== HENTAIVNX ====================
+    @app_commands.command(name="htvn", description="🇻🇳 Tìm truyện việt hóa từ HentaiVNX (hỗ trợ nhiều tag)")
+    @app_commands.describe(
+        tag="Tag chính (Bắt buộc nhập, gõ để tìm hoặc chọn bên dưới)",
+        tag2="Tag phụ 2",
+        tag3="Tag phụ 3",
+        tag4="Tag phụ 4",
+        tag5="Tag phụ 5",
+        amount="Số lượng truyện (1-5)"
+    )
+    async def htvn(
+        self,
+        inter: discord.Interaction,
+        tag: str,
+        tag2: str = None,
+        tag3: str = None,
+        tag4: str = None,
+        tag5: str = None,
+        amount: int = 1
+    ):
+        if not await self.is_nsfw(inter):
+            return
+        await inter.response.defer()
+
+        amount = min(max(amount, 1), 5)
+        tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
+        query = " ".join(tags_list)
+
+        base_url = "https://hentaivnx1.com"
+        search_url = f"{base_url}/tim-kiem-nang-cao?keyword={urllib.parse.quote(query)}"
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": base_url
+        }
+
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(search_url, timeout=12) as resp:
+                    if resp.status != 200:
+                        raise Exception(f"Không thể kết nối website, Status: {resp.status}")
+                    html_content = await resp.text()
+
+                soup = BeautifulSoup(html_content, "html.parser")
+                items = soup.select(".list-stories .story-item") or soup.select(".box-list .item")
+                
+                if not items:
+                    return await inter.followup.send(f"❌ Không tìm thấy truyện dịch nào với từ khóa `{query}` trên HentaiVNX.")
+
+                selected_items = random.sample(items, min(amount, len(items)))
+
+                for item in selected_items:
+                    title_element = item.select_one(".story-title a") or item.select_one("h3 a")
+                    title = title_element.text.strip() if title_element else "Truyện HentaiVNX"
+                    
+                    link = title_element["href"] if title_element and title_element.has_attr("href") else base_url
+                    if not link.startswith("http"):
+                        link = f"{base_url}{link}"
+
+                    img_element = item.select_one("img")
+                    cover = img_element["src"] if img_element and img_element.has_attr("src") else None
+                    if cover and not cover.startswith("http"):
+                        cover = f"{base_url}{cover}"
+
+                    chapter_element = item.select_one(".latest-chapter") or item.select_one(".chapter")
+                    chapter_info = chapter_element.text.strip() if chapter_element else "Oneshot/Full"
+
+                    embed = discord.Embed(
+                        title=title[:250],
+                        url=link,
+                        color=0x32CD32,
+                        description=f"**Mới nhất:** `{chapter_info}`\n**Tags:** `{query}`"
+                    )
+                    if cover:
+                        embed.set_image(url=cover)
+                    embed.set_footer(text="Xem trực tiếp truyện trên website HentaiVNX")
+
+                    await inter.followup.send(embed=embed)
+
+        except Exception as e:
+            logging.error(f"HentaiVNX command error: {e}")
+            await inter.followup.send("❌ Hệ thống gặp sự cố khi cào dữ liệu HentaiVNX, vui lòng thử lại sau.")
+
+    # ==================== AUTOCOMPLETE CHO /HTVN ====================
+    async def htvn_autocomplete(self, interaction: discord.Interaction, current: str):
+        htvn_tags = ["Ntr", "Milf", "Cheating", "Ahegao", "Schoolgirl", "Romance", "Yuri"]
+        current = (current or "").lower().strip()
+        if not current:
+            return [app_commands.Choice(name=tag, value=tag) for tag in htvn_tags[:15]]
+        matches = [tag for tag in htvn_tags if current in tag.lower()]
+        return [app_commands.Choice(name=tag, value=tag) for tag in (matches or htvn_tags)[:25]]
+
+    @htvn.autocomplete("tag")
+    async def htvn_tag_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.htvn_autocomplete(interaction, current)
+
+    @htvn.autocomplete("tag2")
+    async def htvn_tag2_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.htvn_autocomplete(interaction, current)
+
+    @htvn.autocomplete("tag3")
+    async def htvn_tag3_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.htvn_autocomplete(interaction, current)
+
+    @htvn.autocomplete("tag4")
+    async def htvn_tag4_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.htvn_autocomplete(interaction, current)
+
+    @htvn.autocomplete("tag5")
+    async def htvn_tag5_autocomplete(self, interaction: discord.Interaction, current: str):
+        return await self.htvn_autocomplete(interaction, current)
+
     # ==================== DOUJIN ====================
     @app_commands.command(name="doujin", description="📚 Random doujin từ nhentai")
     async def doujin(self, inter: discord.Interaction):
