@@ -408,10 +408,10 @@ class NSFWBot(commands.Cog):
             logging.error(f"Danbooru autocomplete error: {e}")
 
         return []
-        # ==================== NTR ====================
+            # ==================== NTR ====================
     @app_commands.command(name="ntr", description="📚 Tìm truyện NTR từ nhentai (hỗ trợ nhiều tag)")
     @app_commands.describe(
-        tag="Tag chính (để trống = random NTR)",
+        tag="Tag chính (Bắt buộc nhập, gõ để tìm hoặc chọn bên dưới)",
         tag2="Tag phụ 2",
         tag3="Tag phụ 3",
         tag4="Tag phụ 4",
@@ -421,7 +421,7 @@ class NSFWBot(commands.Cog):
     async def ntr(
         self,
         inter: discord.Interaction,
-        tag: str = None,
+        tag: str, # Đã bỏ "= None" -> Biến ô này thành bắt buộc, tự hiện khi gõ lệnh
         tag2: str = None,
         tag3: str = None,
         tag4: str = None,
@@ -466,7 +466,10 @@ class NSFWBot(commands.Cog):
 
                 for item in selected:
                     gallery_id = item.get("id")
-                    title = item.get("english_title") or item.get("japanese_title") or f"NTR #{gallery_id}"
+                    
+                    title_obj = item.get("title") or {}
+                    title = title_obj.get("english") or title_obj.get("japanese") or title_obj.get("pretty") or f"NTR #{gallery_id}"
+                    
                     media_id = item.get("media_id")
                     num_pages = item.get("num_pages") or "?"
 
