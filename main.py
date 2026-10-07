@@ -408,8 +408,8 @@ class NSFWBot(commands.Cog):
             logging.error(f"Danbooru autocomplete error: {e}")
 
         return []
-                # ==================== NTR ====================
-    @app_commands.command(name="ntr", description="📚 Tìm truyện NTR từ nhentai (hỗ trợ nhiều tag)")
+              # ==================== NTR ====================
+    @app_commands.command(name="ntr", description="📚 Tìm truyện NTR từ nhentai (hỗ trạng nhiều tag)")
     @app_commands.describe(
         tag="Tag chính (Bắt buộc nhập, gõ để tìm hoặc chọn bên dưới)",
         tag2="Tag phụ 2",
@@ -421,7 +421,7 @@ class NSFWBot(commands.Cog):
     async def ntr(
         self,
         inter: discord.Interaction,
-        tag: str, 
+        tag: str, # Giữ nguyên bắt buộc nhập để tự hiện tag
         tag2: str = None,
         tag3: str = None,
         tag4: str = None,
@@ -434,24 +434,26 @@ class NSFWBot(commands.Cog):
 
         amount = min(max(amount, 1), 5)
 
-        # Lấy danh sách tag bạn nhập vào
         tags_list = [t.strip() for t in [tag, tag2, tag3, tag4, tag5] if t and t.strip()]
         
-        # ĐÃ SỬA: Không tự động chèn chữ "ntr" vào đầu nữa, nhập gì tìm nấy
+        # Đã sửa: Giữ nguyên logic cũ của bạn (tự động thêm chữ ntr nếu thiếu)
         if not tags_list:
             query = "ntr"
         else:
+            if "ntr" not in [t.lower() for t in tags_list]:
+                tags_list.insert(0, "ntr")
             query = " ".join(tags_list)
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "application/json",
-            "Referer": "https://nhentai.net"
+            "Referer": "https://nhentai.net/"
         }
 
         try:
             async with aiohttp.ClientSession(headers=headers) as session:
-                search_url = f"https://nhentai.netapi/v2/search?query={urllib.parse.quote(query)}&page=1"
+                # ĐÃ FIX: Thêm lại dấu / vào đúng link gốc của bạn
+                search_url = f"https://nhentai.net{urllib.parse.quote(query)}&page=1"
                 
                 async with session.get(search_url, timeout=10) as resp:
                     if resp.status != 200:
@@ -473,15 +475,17 @@ class NSFWBot(commands.Cog):
                     media_id = item.get("media_id")
                     num_pages = item.get("num_pages") or "?"
 
+                    # Giữ nguyên cấu trúc check cover gốc của bạn
                     thumb = item.get("thumbnail")
                     if thumb:
-                        cover = f"https://nhentai.net{thumb}"
+                        cover = f"https://t.nhentai.net/{thumb}"
                     elif media_id:
-                        cover = f"https://nhentai.netgalleries/{media_id}/cover.jpg"
+                        cover = f"https://t.nhentai.net/galleries/{media_id}/cover.jpg"
                     else:
                         cover = None
 
-                    link = f"https://nhentai.netg/{gallery_id}/"
+                    # ĐÃ FIX: Thêm lại dấu / vào link đọc truyện
+                    link = f"https://nhentai.net{gallery_id}/"
 
                     embed = discord.Embed(
                         title=title[:250],
