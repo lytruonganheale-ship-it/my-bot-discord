@@ -518,7 +518,10 @@ class NSFWBot(commands.Cog):
 
         except Exception as e:
             logging.error(f"NTR command error: {e}")
-            await inter.followup.send("❌ Lỗi khi tìm truyện NTR, thử lại sau nhé.", delete_after=5)
+                         msg = await inter.followup.send("❌ Lỗi khi tìm truyện NTR, thử lại sau nhé.")
+            
+            # Sử dụng chính hàm safe_delete có sẵn của bạn để xóa ngầm sau 5 giây
+            asyncio.create_task(self.safe_delete(msg, 5))
 
     # ==================== AUTOCOMPLETE CHO /NTR ====================
     async def ntr_autocomplete(self, interaction: discord.Interaction, current: str):
