@@ -82,7 +82,7 @@ class NSFWBot(commands.Cog):
             return False
         return True
 
-        async def nsfw_cooldown_check(self, user_id: int, seconds: int = 6):
+    async def nsfw_cooldown_check(self, user_id: int, seconds: int = 6):
         now = datetime.now(timezone.utc)
 
         # Dọn những user đã hết cooldown
