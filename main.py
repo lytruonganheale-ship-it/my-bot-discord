@@ -302,8 +302,8 @@ class NSFWBot(commands.Cog):
                 except Exception as e:
                     print(f"Lỗi khi gọi {booru['name']}: {e}")
                     continue
-        await interaction.followup.send("❌ Không tìm thấy ảnh với tag này hoặc API đang lỗi. Thử tag khác nhé.", delete_after=4)
-
+    await interaction.followup.send("❌ Không tìm thấy ảnh với tag này hoặc API đang lỗi. Thử tag khác nhé.", delete_after=8)
+        
     # ==================== AUTOCOMPLETE CHO /R34 ====================
     async def r34_autocomplete(self, interaction: discord.Interaction, current: str):
         try:
