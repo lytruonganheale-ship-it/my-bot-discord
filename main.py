@@ -82,19 +82,19 @@ class NSFWBot(commands.Cog):
             return False
         return True
 
-    async def nsfw_cooldown_check(self, user_id: int, seconds: int = 6):
-    now = datetime.now(timezone.utc)
+        async def nsfw_cooldown_check(self, user_id: int, seconds: int = 6):
+        now = datetime.now(timezone.utc)
 
-    # Dọn những user đã hết cooldown
-    expired = [uid for uid, t in list(nsfw_cooldown.items()) if now - t >= timedelta(seconds=seconds)]
-    for uid in expired:
-        del nsfw_cooldown[uid]
+        # Dọn những user đã hết cooldown
+        expired = [uid for uid, t in list(nsfw_cooldown.items()) if now - t >= timedelta(seconds=seconds)]
+        for uid in expired:
+            del nsfw_cooldown[uid]
 
-    if user_id in nsfw_cooldown:
-        return False
+        if user_id in nsfw_cooldown:
+            return False
 
-    nsfw_cooldown[user_id] = now
-    return True
+        nsfw_cooldown[user_id] = now
+        return True
 
     async def safe_delete(self, message: discord.Message, delay: int = 45):
         await asyncio.sleep(delay)
