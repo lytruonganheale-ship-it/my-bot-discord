@@ -127,7 +127,7 @@ class NSFWBot(commands.Cog):
         if not await self.is_nsfw(inter):
             return
         if not await self.nsfw_cooldown_check(inter.user.id, 1):
-            return await inter.followup.send("⏳ Đừng spam!", ephemeral=True)
+            return await inter.response.send_message("⏳ Đừng spam!", ephemeral=True)
 
         await inter.response.defer()
         media = await self.fetch_danbooru(tag)
