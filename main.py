@@ -600,7 +600,7 @@ class NSFWBot(commands.Cog):
             await inter.followup.send("❌ Hiện tại không lấy được doujin.\nBạn có thể vào trực tiếp: https://nhentai.net/random/")
     # ==================== HENTAI VIDEO ====================
     @app_commands.command(name="hanime", description="🎥 Random video hentai")
-    async def hentaivideo(self, interaction: discord.Interaction):
+    async def hanime(self, interaction: discord.Interaction):
         if not await self.is_nsfw(interaction):
             return
         if not await self.nsfw_cooldown_check(interaction.user.id, 3):
