@@ -298,7 +298,7 @@ class NSFWBot(commands.Cog):
                                 )
                                 # asyncio.create_task(self.safe_delete(msg, 48))
                         # Thành công rồi thì dừng, không chạy sang booru tiếp theo
-                        return
+                                return
                 except Exception as e:
                     print(f"Lỗi khi gọi {booru['name']}: {e}")
                     continue
