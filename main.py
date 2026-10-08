@@ -407,7 +407,7 @@ class NSFWBot(commands.Cog):
         except Exception as e:
             logging.error(f"Danbooru error: {e}")
 
-        await interaction.followup.send(f"❌ Không tìm thấy kết quả nào cho tag `{tags}` trên Danbooru.")
+        await interaction.followup.send(f"❌ Không tìm thấy kết quả nào cho tag `{tags}` trên Danbooru.", delete_after=5)
 
     # Auto-complete gợi ý tag cho lệnh /dan
     @dan.autocomplete("tags")
@@ -518,7 +518,7 @@ class NSFWBot(commands.Cog):
 
         except Exception as e:
             logging.error(f"NTR command error: {e}")
-            await inter.followup.send("❌ Lỗi khi tìm truyện NTR, thử lại sau nhé.")
+            await inter.followup.send("❌ Lỗi khi tìm truyện NTR, thử lại sau nhé.", delete after=5)
 
     # ==================== AUTOCOMPLETE CHO /NTR ====================
     async def ntr_autocomplete(self, interaction: discord.Interaction, current: str):
