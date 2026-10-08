@@ -10,6 +10,35 @@ import re
 from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup
 
+# ==================== ĐOẠN CODE SỬA LỖI TRỰC TIẾP CHO WEBHOOK ====================
+_original_webhook_send = discord.Webhook.send
+
+async def patched_webhook_send(self, *args, **kwargs):
+    # Tách tham số delete_after ra ngoài trước khi gọi hàm gốc của Discord
+    delete_after = kwargs.pop('delete_after', None)
+    
+    # Ép buộc hàm trả về đối tượng Message để có thể thực hiện lệnh xóa
+    if delete_after is not None:
+        kwargs['wait'] = True
+        
+    msg = await _original_webhook_send(self, *args, **kwargs)
+    
+    # Tạo một tác vụ chạy ngầm để tự động xóa tin nhắn sau số giây quy định
+    if delete_after is not None and msg is not None:
+        async def do_delete():
+            await asyncio.sleep(delete_after)
+            try:
+                await msg.delete()
+            except Exception:
+                pass  # Bỏ qua nếu tin nhắn đã bị xóa trước đó
+        asyncio.create_task(do_delete())
+        
+    return msg
+
+# Đè hàm mới tự tạo vào thư viện gốc
+discord.Webhook.send = patched_webhook_send
+# =================================================================================
+
 # ====================== KEEP ALIVE ======================
 from flask import Flask
 from threading import Thread
@@ -302,7 +331,7 @@ class NSFWBot(commands.Cog):
                 except Exception as e:
                     print(f"Lỗi khi gọi {booru['name']}: {e}")
                     continue
-        await interaction.followup.send("❌ Không tìm thấy ảnh với tag này hoặc API đang lỗi. Thử tag khác nhé.")
+        await interaction.followup.send("❌ Không tìm thấy ảnh với tag này hoặc API đang lỗi. Thử tag khác nhé.", delete_after=5)
         
     # ==================== AUTOCOMPLETE CHO /R34 ====================
     async def r34_autocomplete(self, interaction: discord.Interaction, current: str):
