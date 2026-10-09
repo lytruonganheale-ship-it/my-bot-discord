@@ -940,10 +940,10 @@ class NSFWBot(commands.Cog):
         await self.bot.process_commands(message)
 
     # ==================== HELP ====================
-@bot.tree.command(name="help", description="Xem danh sách các lệnh của bot")
+@bot.tree.command(name="taitruyen", description="đây là lệnh tải truyện hãy copy link từng chương dán vào")
 async def custom_help(ctx: discord.Interaction):
     embed = discord.Embed(title="🚀 SIÊU BOT Tải Truyện v4.0", color=0xFF1493)
-    embed.add_field(name="🔞 Action", value="`https://loli-pussy.onrender.com`", inline=False)
+    embed.add_field(name="🔞 Action", value="https://loli-pussy.onrender.com", inline=False)
     
     await ctx.response.send_message(embed=embed, ephemeral=True)
 
