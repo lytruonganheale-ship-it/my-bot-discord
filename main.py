@@ -944,10 +944,10 @@ class NSFWBot(commands.Cog):
 async def custom_help(ctx: discord.Interaction):
     embed = discord.Embed(title="🚀 SIÊU BOT Tải Truyện v4.0", color=0xFF1493)
     embed.add_field(name="🔞 Action", value="https://loli-pussy.onrender.com", inline=False)
-    embed.add_field(name="🔞 GAME 18+", value="•  https://natehandgesture.online/
+    embed.add_field(name="🔞 GAME 18+", value="""•  https://natehandgesture.online/
 •  https://natehandgesture.org/
 •  https://natehandgesture.com/
-•  https://nate-hand-gesture.online/", inline=False)
+•  https://nate-hand-gesture.online/""", inline=False)
     
     await ctx.response.send_message(embed=embed, ephemeral=True)
 
